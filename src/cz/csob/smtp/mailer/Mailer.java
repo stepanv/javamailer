@@ -1,261 +1,162 @@
 package cz.csob.smtp.mailer;
+
 /* An example of a very simple, multi-threaded HTTP server.
  * Implementation notes are in WebServer.html, and also
  * as comments in the source code.
  */
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Vector;
+
+import org.apache.log4j.Logger;
 
 public class Mailer {
 
-	/* static class data/methods */
-
-	/* print to stdout */
-	protected static void p(String s) {
-		System.out.println(s);
-	}
-
-	/* print to the log file */
-	protected static void log(String s) {
-		synchronized (log) {
-			log.println(s);
-			log.flush();
-		}
-	}
+	private static Logger logger = Logger.getLogger(Mailer.class.getName());
 
 	static PrintStream log = null;
 
-	/* Where worker threads stand idle */
-	static Vector threads = new Vector();
-	
-	/* Running threads */
-//	static Vector threadsRunning = new Vector();
+	/**
+	 * Where worker threads stand idle
+	 */
+	private static Vector<Worker> workersIdlePool = new Vector<Worker>();
 
-	/* load www-server.properties from java.home */
-	static void loadProps() throws IOException {
-		if (Configuration.log != null) {
-			p("opening log file: " + Configuration.log);
-			log = new PrintStream(new BufferedOutputStream(
-					new FileOutputStream(Configuration.log)));
-		} else {
-			p("logging to stdout");
-			log = System.out;
+	/**
+	 * In case that there isn't enough idle thread in the pool add worker to the
+	 * pool.
+	 * 
+	 * @param worker
+	 * @return indication whether the worker was or wasn't added to the idle
+	 *         pool.
+	 */
+	public static boolean conditionallyAddWorkerToTheIdlePool(Worker worker) {
+		synchronized (workersIdlePool) {
+			if (workersIdlePool.size() >= Configuration.workers) {
+				/* too many threads, exit this one */
+				return false;
+			} else {
+				workersIdlePool.addElement(worker);
+				return true;
+			}
+		}
+	}
+
+	/**
+	 * Running threads
+	 */
+	private static Vector<Worker> workersRunning = new Vector<Worker>();
+
+	public static void addRunningWorker(Worker worker) {
+		synchronized (workersRunning) {
+			workersRunning.add(worker);
+		}
+	}
+
+	public static void removeRunningWorker(Worker worker) {
+		synchronized (workersRunning) {
+			workersRunning.remove(worker);
 		}
 	}
 
 	static void printProps() {
-		p("timeout= " + Configuration.timeout);
-		p("workers= " + Configuration.workers);
-		p("port= " + Configuration.port);
+		logger.info("timeout= " + Configuration.timeout);
+		logger.info("workers= " + Configuration.workers);
+		logger.info("port= " + Configuration.port);
 	}
-	
-//	private static boolean inShutdownHook = false; 
-	
-//	static {
-//		// Add the shutdown hook as new java thread to the runtime.
-//		// can be added as inner class or a separate class that implements
-//		// Runnable or extends Thread
-//		Runtime.getRuntime().addShutdownHook(new Thread() {
-//			public void run() {
-//				p("in : run () : shutdownHook");
-//				
-//				inShutdownHook = true;
-//					for (int i = 0; i < threadsRunning.size(); ++i) {
-//						Object worker = threadsRunning.elementAt(i);
-//						if (worker instanceof Worker) {
-//							((Worker)worker).stop();
-//							p("worker stopped...");
-//							
-//						};
-//					}
-//					
-//				p("Shutdown hook completed...");
-//			}
-//		});
-//	}
 
-	public static void main(String[] a) throws Exception {
-		int port = Configuration.port;
-		if (a.length > 0) {
-			port = Integer.parseInt(a[0]);
+	private static boolean inShutdownHook = false;
+
+	static {
+		// Add the shutdown hook as new java thread to the runtime.
+		// can be added as inner class or a separate class that implements
+		// Runnable or extends Thread
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+				logger.debug("in : run () : shutdownHook");
+
+				inShutdownHook = true;
+				synchronized (workersRunning) {
+					for (int i = 0; i < workersRunning.size(); ++i) {
+						Worker worker = workersRunning.elementAt(i);
+						logger.info("Worker " + worker.getId() + "stopping...");
+						worker.stopAsync();
+					}
+				}
+
+				logger.debug("Shutdown hook completed...");
+			}
+		});
+	}
+
+	/**
+	 * Main mathod of Mailer program.
+	 * 
+	 * @param args
+	 *            as program arguments
+	 * @throws Exception
+	 */
+	public static void main(String[] args) {
+
+		if (args.length > 0) {
+			int port;
+			try {
+				port = Integer.parseInt(args[0]);
+				Configuration.port = port;
+			} catch (NumberFormatException e) {
+				logger.error("Program port argument '" + args[0]
+						+ "' not an integer");
+			}
 		}
-		loadProps();
-		printProps();
 		
+		Configuration.touch();
+
+		logger.info("Configuration file contains: "
+				+ Configuration.currentConfiguration());
+
 		/* start worker threads */
 		for (int i = 0; i < Configuration.workers; ++i) {
 			Worker w = new Worker();
-			(new Thread(w, "worker #" + i)).start();
-			threads.addElement(w);
+			w.start();
+			logger.info("worker thread " + w.getId() + " started");
+			workersIdlePool.addElement(w);
 		}
 
-		ServerSocket ss = new ServerSocket(port);
-		while (true) {
-//			if (inShutdownHook) {
-//				return;
-//			}
-			Socket s = ss.accept();
-
-			Worker w = null;
-			synchronized (threads) {
-				if (threads.isEmpty()) {
-					w = new Worker();
-					w.setSocket(s);
-					(new Thread(w, "additional worker")).start();
-				} else {
-					w = (Worker) threads.elementAt(0);
-					threads.removeElementAt(0);
-					w.setSocket(s);
-				}
-			}
-		}
-	}
-}
-
-
-
-class Worker extends Mailer implements Runnable {
-	final static int BUF_SIZE = 2048;
-
-	static final byte[] EOL = { (byte) '\r', (byte) '\n' };
-
-	/* buffer to use for requests */
-	byte[] buf;
-
-	/* Socket to client we're handling */
-	private Socket s;
-	
-	/* Connection to dev */
-	ConnectionToDev ssh;
-	
-	BufferedReader input;
-
-	Worker() {
-		buf = new byte[BUF_SIZE];
-		s = null;
-	}
-
-	synchronized void setSocket(Socket s) {
-		this.s = s;
-		notify();
-	}
-	
-	public void stop() {
 		try {
-//			synchronized (ssh) {
-				ssh.stdinWrite("QUIT\n");
-//			}
-			p("sent QUIT to remote telnet instance...");
-		} catch (Exception e) {
-			p("sent QUIT to remote telnet instance... NOK");
-		}
-		try {
-			input.close();
-			p("closed input stream...");
-		} catch (Exception e) {
-			p("closed input stream... NOK");
-		}
-		try {
-			ssh.process.destroy();
-			p("Destroyed ssh process...");
-		} catch (Exception e) {
-			p("Destroyed ssh process... NOK");
-		}
-		try {
-			s.close();
-			p("Socket closed...");
-		} catch (Exception e) {
-			p("Socket closed... NOK");
-		}
-	}
 
-	public synchronized void run() {
-//		try {
-//			synchronized (threadsRunning) {
-//				threadsRunning.add(this);
-//			}
-			
+			/* create a socket on a specified port */
+			logger.debug("creating socket at port: " + Configuration.port);
+			ServerSocket serverSocket = new ServerSocket(Configuration.port);
+
+			/* main program loop */
 			while (true) {
-				if (s == null) {
-					/* nothing to do */
-					try {
-						wait();
-					} catch (InterruptedException e) {
-						/* should not happen */
-						continue;
-					}
+				if (inShutdownHook) {
+					return;
 				}
 				try {
-					handleClient();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				/*
-				 * go back in wait queue if there's fewer than numHandler
-				 * connections.
-				 */
-				s = null;
-				Vector pool = Mailer.threads;
-				synchronized (pool) {
-					if (pool.size() >= Configuration.workers) {
-						/* too many threads, exit this one */
-						return;
-					} else {
-						pool.addElement(this);
-					}
-				}
-			}
-//		} finally {
-//			synchronized (threadsRunning) {
-//				threadsRunning.remove(this);
-//			}
-//		}
-	}
+					Socket socketToAClient = serverSocket.accept();
 
-	void handleClient() throws IOException {
-		InputStream is = new BufferedInputStream(s.getInputStream());
-		PrintStream ps = new PrintStream(s.getOutputStream());
-		/*
-		 * we will only block in read for this many milliseconds before we fail
-		 * with java.io.InterruptedIOException, at which point we will abandon
-		 * the connection.
-		 */
-		s.setSoTimeout(Configuration.timeout);
-		s.setTcpNoDelay(true);
-		
-		SocketAddress sa = s.getRemoteSocketAddress();
-		if (!sa.toString().matches(".*127\\.0\\.0\\.1:[0-9]{1,5}")) {
-			ps.print("550 " + " Will not communicate... ");
-			ps.write(EOL);
-			ps.flush();
-			s.close();
-			return;
-		}
-		
-		/* execute ssh connection */
-		ssh = ConnectionToDev.factoryConnectionToDev(ps);
-		ssh.exec();
-		input = new BufferedReader(new InputStreamReader(is));
-		try {
-			String line;
-			while (s.isConnected()) {
-				line = input.readLine();
-				
-				if (line == null) {
-					return;
-				} else if (line.matches("[HE][EH]LO .*")) {
-					line = "HELO " + Configuration.sshSmtpServerPretended;
-				}
-				synchronized (ssh) {
-					p("sending to ssh: " + line);
-					ssh.stdinWrite(line + "\n");
+					Worker worker = null;
+					synchronized (workersIdlePool) {
+						if (workersIdlePool.isEmpty()) {
+							worker = new Worker(socketToAClient);
+							worker.start();
+							logger.info("worker " + worker.getId() + " started");
+						} else {
+							worker = workersIdlePool.elementAt(0);
+							workersIdlePool.removeElementAt(0);
+							worker.setSocketToAClient(socketToAClient);
+						}
+					}
+				} catch (IOException e) {
+					logger.info("Communication with client was forcefully ended.");
 				}
 			}
-		
-		} finally {
-			stop();
+		} catch (IOException e) {
+			logger.error("Cannot open socket at port: " + Configuration.port);
 		}
+
+		logger.info("Mailer in shutdown");
 	}
 }
-
