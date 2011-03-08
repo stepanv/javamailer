@@ -13,6 +13,12 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 public class Mailer {
+	/**
+	 * We must use CRLF end-of-line endings for a network communication.
+	 * 
+	 * @see http://www.rfc-editor.org/EOLstory.txt
+	 */
+	public static final byte[] EOL = { (byte) '\r', (byte) '\n' };
 
 	private static Logger logger = Logger.getLogger(Mailer.class.getName());
 
@@ -81,7 +87,7 @@ public class Mailer {
 					for (int i = 0; i < workersRunning.size(); ++i) {
 						Worker worker = workersRunning.elementAt(i);
 						logger.info("Worker " + worker.getId() + "stopping...");
-						worker.stopAsync();
+						worker.stopFast();
 					}
 				}
 

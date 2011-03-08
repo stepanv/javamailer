@@ -12,15 +12,10 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-class Worker extends Thread implements Runnable {
-	private final static int BUF_SIZE = 2048;
+import cz.csob.smtp.mailer.ConnectionToSmtp.Notifier;
 
-	/**
-	 * We must use CRLF end-of-line endings for a network communication.
-	 * 
-	 * @see http://www.rfc-editor.org/EOLstory.txt
-	 */
-	private static final byte[] EOL = { (byte) '\r', (byte) '\n' };
+class Worker extends Thread implements Runnable, Notifier {
+	private final static int BUF_SIZE = 2048;
 
 	private static Logger logger = Logger.getLogger(Worker.class.getName());
 
@@ -40,7 +35,7 @@ class Worker extends Thread implements Runnable {
 	}
 
 	public Worker() {
-		
+
 	}
 
 	synchronized void setSocketToAClient(Socket socketToAClient) {
@@ -49,6 +44,7 @@ class Worker extends Thread implements Runnable {
 	}
 
 	private void stopHook() {
+		logger.debug("running stop hook");
 		// TODO rewrite this weird thing
 		try {
 			// synchronized (ssh) { TODO do somwthing with this...
@@ -65,10 +61,10 @@ class Worker extends Thread implements Runnable {
 			logger.debug("closed input stream... NOK");
 		}
 		try {
-			ssh.destroy();
-			logger.debug("Destroyed ssh process...");
+			ssh.kill();
+			logger.debug("Killed ssh process...");
 		} catch (Exception e) {
-			logger.debug("Destroyed ssh process... NOK");
+			logger.debug("Killed ssh process... NOK");
 		}
 		try {
 			socketToAClient.close();
@@ -79,22 +75,23 @@ class Worker extends Thread implements Runnable {
 	}
 
 	/**
-	 * A volatile variable which is used to mark current thread as one which
-	 * has to stop.
+	 * A volatile variable which is used to mark current thread as one which has
+	 * to stop.
 	 */
 	private volatile boolean running = true;
-	
+
 	/**
-	 * Stop current thread in an asynchronous safe way. This doesn't force
-	 * the thread to stop immediately.
+	 * Stop current thread in an asynchronous safe way. This doesn't force the
+	 * thread to stop immediately.
 	 */
 	public void stopAsync() {
 		running = false;
 	}
-	
+
 	public void stopFast() {
 		this.interrupt();
 	}
+
 	/**
 	 * Worker's main thread method. Worker is marked as a running thread and
 	 * waiting for a socket to a client. Afterwards client is handled.
@@ -104,12 +101,12 @@ class Worker extends Thread implements Runnable {
 			Mailer.addRunningWorker(this);
 			while (running) {
 				/*
-				 * Waiting for a socket to a client. Socket is set by
-				 * main program loop when a client is connected to the default
-				 * server port. Communication then continues on a different
-				 * socket so that default socket (port) is free and available
-				 * for more parallel connections.
-				 * Thread could be stopped by calling interrupt() method.
+				 * Waiting for a socket to a client. Socket is set by main
+				 * program loop when a client is connected to the default server
+				 * port. Communication then continues on a different socket so
+				 * that default socket (port) is free and available for more
+				 * parallel connections. Thread could be stopped by calling
+				 * interrupt() method.
 				 */
 				while (socketToAClient == null) {
 					wait();
@@ -126,6 +123,8 @@ class Worker extends Thread implements Runnable {
 				if (!Mailer.conditionallyAddWorkerToTheIdlePool(this)) {
 					running = false;
 				}
+
+				logger.debug("Worker main loop ended.");
 			}
 		} catch (InterruptedException e) {
 			/* received interrupt signal */
@@ -133,10 +132,25 @@ class Worker extends Thread implements Runnable {
 		} finally {
 			stopHook();
 			Mailer.removeRunningWorker(this);
+			logger.debug("Worker thread removed from running ones.");
 		}
 	}
 
 	private static final Pattern HELLO_PATT = Pattern.compile("[HE][EH]LO .*");
+
+	public void endClientSession() {
+		try {
+			if (socketToAClient != null) {
+				socketToAClient.close();
+			}
+		} catch (IOException e) {
+			// we don't mind if something happens
+		}
+	}
+
+	public void notifyMe() {
+		endClientSession();
+	}
 
 	/**
 	 * Handles SMTP client which has connected to this server. It forwards all
@@ -166,7 +180,7 @@ class Worker extends Thread implements Runnable {
 					sa.toString()).matches()) {
 				logger.info("Denying access for a client ip: " + sa);
 				ps.print("550 " + " Will not communicate... ");
-				ps.write(EOL);
+				ps.write(Mailer.EOL);
 				ps.flush();
 				socketToAClient.close();
 				return;
@@ -175,10 +189,9 @@ class Worker extends Thread implements Runnable {
 			/*
 			 * Create ssh connection to ssh server.
 			 */
-			ssh = ConnectionToSmtp.factoryConnectionToDev(ps);
-			ssh.exec();
+			ssh = new ConnectionToSmtp(ps, this);
+			ssh.start();
 
-			
 			clientInput = new BufferedReader(new InputStreamReader(is));
 
 			/*
@@ -191,16 +204,23 @@ class Worker extends Thread implements Runnable {
 				String line = clientInput.readLine();
 
 				if (line == null) {
+					logger.debug("Client has closed input, sending EOL to ssh.");
+					ssh.stdinWrite(Mailer.EOL);
 					return;
 				} else if (HELLO_PATT.matcher(line).matches()) {
 					line = "HELO " + Configuration.sshSmtpServerPretended;
 				}
-				logger.debug("sending to ssh: " + line);
+				logger.debug("Sending to ssh: " + line);
 				ssh.stdinWrite(line + "\n");
 			}
 		} catch (IOException e) {
 			logger.debug("Client session forcefully ended.");
 			logger.debug(e);
+		} finally {
+			if (ssh != null) {
+				logger.debug("Destroying ssh process.");
+				ssh.kill();
+			}
 		}
 	}
 }
