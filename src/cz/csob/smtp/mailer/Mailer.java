@@ -27,7 +27,7 @@ public class Mailer {
 	/**
 	 * Where worker threads stand idle
 	 */
-	private static Vector<Worker> workersIdlePool = new Vector<Worker>();
+	private static Vector<Sender> workersIdlePool = new Vector<Sender>();
 
 	/**
 	 * In case that there isn't enough idle thread in the pool add worker to the
@@ -37,7 +37,7 @@ public class Mailer {
 	 * @return indication whether the worker was or wasn't added to the idle
 	 *         pool.
 	 */
-	public static boolean conditionallyAddWorkerToTheIdlePool(Worker worker) {
+	public static boolean conditionallyAddWorkerToTheIdlePool(Sender worker) {
 		synchronized (workersIdlePool) {
 			if (workersIdlePool.size() >= Configuration.workers) {
 				/* too many threads, exit this one */
@@ -52,15 +52,15 @@ public class Mailer {
 	/**
 	 * Running threads
 	 */
-	private static Vector<Worker> workersRunning = new Vector<Worker>();
+	private static Vector<Sender> workersRunning = new Vector<Sender>();
 
-	public static void addRunningWorker(Worker worker) {
+	public static void addRunningWorker(Sender worker) {
 		synchronized (workersRunning) {
 			workersRunning.add(worker);
 		}
 	}
 
-	public static void removeRunningWorker(Worker worker) {
+	public static void removeRunningWorker(Sender worker) {
 		synchronized (workersRunning) {
 			workersRunning.remove(worker);
 		}
@@ -85,7 +85,7 @@ public class Mailer {
 				inShutdownHook = true;
 				synchronized (workersRunning) {
 					for (int i = 0; i < workersRunning.size(); ++i) {
-						Worker worker = workersRunning.elementAt(i);
+						Sender worker = workersRunning.elementAt(i);
 						logger.info("Worker " + worker.getId() + "stopping...");
 						worker.stopFast();
 					}
@@ -123,7 +123,7 @@ public class Mailer {
 
 		/* start worker threads */
 		for (int i = 0; i < Configuration.workers; ++i) {
-			Worker w = new Worker();
+			Sender w = new Sender();
 			w.start();
 			logger.info("worker thread " + w.getId() + " started");
 			workersIdlePool.addElement(w);
@@ -143,10 +143,10 @@ public class Mailer {
 				try {
 					Socket socketToAClient = serverSocket.accept();
 
-					Worker worker = null;
+					Sender worker = null;
 					synchronized (workersIdlePool) {
 						if (workersIdlePool.isEmpty()) {
-							worker = new Worker(socketToAClient);
+							worker = new Sender(socketToAClient);
 							worker.start();
 							logger.info("worker " + worker.getId() + " started");
 						} else {

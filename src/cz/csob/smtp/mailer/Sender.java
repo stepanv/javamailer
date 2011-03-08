@@ -12,12 +12,12 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import cz.csob.smtp.mailer.ConnectionToSmtp.Notifier;
+import cz.csob.smtp.mailer.Receiver.Notifier;
 
-class Worker extends Thread implements Runnable, Notifier {
+class Sender extends Thread implements Runnable, Notifier {
 	private final static int BUF_SIZE = 2048;
 
-	private static Logger logger = Logger.getLogger(Worker.class.getName());
+	private static Logger logger = Logger.getLogger(Sender.class.getName());
 
 	/** buffer to use for requests */
 	byte[] buf = new byte[BUF_SIZE];
@@ -26,15 +26,15 @@ class Worker extends Thread implements Runnable, Notifier {
 	private Socket socketToAClient = null;
 
 	/** Connection to ssh server */
-	private ConnectionToSmtp ssh;
+	private Receiver ssh;
 
 	private BufferedReader clientInput;
 
-	Worker(Socket socketToAClient) {
+	Sender(Socket socketToAClient) {
 		this.socketToAClient = socketToAClient;
 	}
 
-	public Worker() {
+	public Sender() {
 
 	}
 
@@ -189,7 +189,7 @@ class Worker extends Thread implements Runnable, Notifier {
 			/*
 			 * Create ssh connection to ssh server.
 			 */
-			ssh = new ConnectionToSmtp(ps, this);
+			ssh = new Receiver(ps, this);
 			ssh.start();
 
 			clientInput = new BufferedReader(new InputStreamReader(is));

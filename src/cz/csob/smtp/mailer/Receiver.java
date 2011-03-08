@@ -6,42 +6,13 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-public class ConnectionToSmtp extends Thread implements Runnable {
+public class Receiver extends Thread implements Runnable {
 
 	private static final Pattern CORRECT_INPUT_PATT = Pattern
 			.compile("^[0-9][0-9][0-9].*");
 
-	private static Logger logger = Logger.getLogger(ConnectionToSmtp.class
+	private static Logger logger = Logger.getLogger(Receiver.class
 			.getName());
-
-//	private Thread sshReader = new Thread(new Runnable() {
-//		public void run() {
-//			Logger logger = Logger.getLogger(ConnectionToSmtp.class.getName()
-//					+ "$sshReader");
-//			try {
-//				String line;
-//				while (true) {
-//					line = ConnectionToSmtp.this.outputLine();
-//					logger.debug("SSH reply:" + line);
-//					if (line == null) {
-//						// TODO maybe do something better. .. for sure!!
-//						logger.debug("End-of-stream reached on stream from ssh.");
-//						return;
-//					}
-//					if (CORRECT_INPUT_PATT.matcher(line).matches()) {
-//						output.write((line + "\r\n").getBytes());
-//						output.flush();
-//					}
-//				}
-//			} catch (Exception e) {
-//				logger.info(e);
-//			} finally {
-//				logger.debug("notifying parent thread about sshReader exiting");
-//				ConnectionToSmtp.this.notifyObject.notifyMe();
-//			}
-//		}
-//
-//	});
 
 	private OutputStream output;
 
@@ -53,7 +24,7 @@ public class ConnectionToSmtp extends Thread implements Runnable {
 		public void notifyMe();
 	}
 
-	public ConnectionToSmtp(OutputStream outputToWrite, Notifier notifyObject) {
+	public Receiver(OutputStream outputToWrite, Notifier notifyObject) {
 		this.output = outputToWrite;
 		this.notifyObject = notifyObject;
 		this.pipedProcess = new PipedProcess(String.format("%s %s %s@%s \"telnet %s %s\"",
@@ -93,7 +64,7 @@ public class ConnectionToSmtp extends Thread implements Runnable {
 			logger.info(e);
 		} finally {
 			logger.debug("notifying parent thread about sshReader exiting");
-			ConnectionToSmtp.this.notifyObject.notifyMe();
+			Receiver.this.notifyObject.notifyMe();
 		}
 		
 	}
