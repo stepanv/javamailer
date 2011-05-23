@@ -58,7 +58,10 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;        
+import javax.swing.border.TitledBorder;
+import java.awt.Component;
+import java.awt.GridLayout;
+import javax.swing.border.EtchedBorder;        
 
 public class Window {
     private static JButton btnStart = new JButton("Start");
@@ -78,7 +81,7 @@ public class Window {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
         gridBagLayout.columnWidths = new int[]{170, 170, 0};
-        gridBagLayout.rowHeights = new int[]{89, 0, 0, 38, 0};
+        gridBagLayout.rowHeights = new int[]{89, 0, 24, 38, 0};
         gridBagLayout.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
         gridBagLayout.rowWeights = new double[]{1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
         frame.getContentPane().setLayout(gridBagLayout);
@@ -93,26 +96,34 @@ public class Window {
         frame.getContentPane().add(panel_1, gbc_panel_1);
         
         JPanel panelConfiguration = new JPanel();
+        panelConfiguration.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         GridBagConstraints gbc_panelConfiguration = new GridBagConstraints();
         gbc_panelConfiguration.gridwidth = 2;
-        gbc_panelConfiguration.insets = new Insets(0, 0, 5, 5);
+        gbc_panelConfiguration.insets = new Insets(0, 0, 5, 0);
         gbc_panelConfiguration.fill = GridBagConstraints.BOTH;
         gbc_panelConfiguration.gridx = 0;
         gbc_panelConfiguration.gridy = 1;
         frame.getContentPane().add(panelConfiguration, gbc_panelConfiguration);
-        
-        JPanel panelConfigurationNamed = new JPanel();
-        panelConfigurationNamed.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Properties", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        panelConfiguration.add(panelConfigurationNamed);
+        GridBagLayout gbl_panelConfiguration = new GridBagLayout();
+        gbl_panelConfiguration.columnWidths = new int[]{305, 0};
+        gbl_panelConfiguration.rowHeights = new int[]{128, 0, 0};
+        gbl_panelConfiguration.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+        gbl_panelConfiguration.rowWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+        panelConfiguration.setLayout(gbl_panelConfiguration);
         
         JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        panelConfigurationNamed.add(tabbedPane);
+        GridBagConstraints gbc_tabbedPane = new GridBagConstraints();
+        gbc_tabbedPane.fill = GridBagConstraints.BOTH;
+        gbc_tabbedPane.insets = new Insets(0, 0, 5, 0);
+        gbc_tabbedPane.gridx = 0;
+        gbc_tabbedPane.gridy = 0;
+        panelConfiguration.add(tabbedPane, gbc_tabbedPane);
         
         JScrollPane scrollPaneConfiguration = new JScrollPane();
         tabbedPane.addTab("Server settings", null, scrollPaneConfiguration, null);
         
         tableConfiguration = new JTable();
-        scrollPaneConfiguration.setPreferredSize(new Dimension(300, 100));
+        scrollPaneConfiguration.setPreferredSize(new Dimension(400, 100));
         scrollPaneConfiguration.setViewportView(tableConfiguration);
         tableConfiguration.setModel(new DefaultTableModel(
             new Object[][] {
@@ -147,39 +158,95 @@ public class Window {
                 "name", "value"
             }
         ));
+        
+        JButton btnSave = new JButton("Save");
+        GridBagConstraints gbc_btnSave = new GridBagConstraints();
+        gbc_btnSave.gridx = 0;
+        gbc_btnSave.gridy = 1;
+        panelConfiguration.add(btnSave, gbc_btnSave);
+        btnSave.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            }
+        });
         tableConfiguration.getColumnModel().getColumn(0).setPreferredWidth(120);
         tableConfiguration.getColumnModel().getColumn(1).setPreferredWidth(108);
         
-        JPanel panel = new JPanel();
-        GridBagConstraints gbc_panel = new GridBagConstraints();
-        gbc_panel.fill = GridBagConstraints.HORIZONTAL;
-        gbc_panel.insets = new Insets(0, 0, 5, 5);
-        gbc_panel.gridx = 0;
-        gbc_panel.gridy = 2;
-        frame.getContentPane().add(panel, gbc_panel);
-        GridBagLayout gbl_panel = new GridBagLayout();
-        gbl_panel.columnWidths = new int[]{36, 54, 72, 0};
-        gbl_panel.rowHeights = new int[]{34, 0};
-        gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
-        gbl_panel.rowWeights = new double[]{0.0, Double.MIN_VALUE};
-        panel.setLayout(gbl_panel);
+        JTabbedPane tabbedPaneMonitor = new JTabbedPane(JTabbedPane.TOP);
+        tabbedPaneMonitor.setBorder(new TitledBorder(null, "Monitor", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+        GridBagConstraints gbc_tabbedPaneMonitor = new GridBagConstraints();
+        gbc_tabbedPaneMonitor.gridwidth = 2;
+        gbc_tabbedPaneMonitor.insets = new Insets(0, 0, 5, 0);
+        gbc_tabbedPaneMonitor.fill = GridBagConstraints.BOTH;
+        gbc_tabbedPaneMonitor.gridx = 0;
+        gbc_tabbedPaneMonitor.gridy = 2;
+        frame.getContentPane().add(tabbedPaneMonitor, gbc_tabbedPaneMonitor);
         
-        JLabel lblStatus = new JLabel("Status:");
-        GridBagConstraints gbc_lblStatus = new GridBagConstraints();
-        gbc_lblStatus.gridwidth = 2;
-        gbc_lblStatus.insets = new Insets(0, 0, 0, 5);
-        gbc_lblStatus.gridx = 0;
-        gbc_lblStatus.gridy = 0;
-        panel.add(lblStatus, gbc_lblStatus);
+        JPanel panelInfo = new JPanel();
+        panelInfo.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+        tabbedPaneMonitor.addTab("Info", null, panelInfo, null);
+        GridBagLayout gbl_panelInfo = new GridBagLayout();
+        gbl_panelInfo.columnWidths = new int[]{200, 200, 0};
+        gbl_panelInfo.rowHeights = new int[]{14, 14, 0, 0};
+        gbl_panelInfo.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+        gbl_panelInfo.rowWeights = new double[]{0.0, 0.0, 1.0, Double.MIN_VALUE};
+        panelInfo.setLayout(gbl_panelInfo);
+        
+        JLabel lblState = new JLabel("State:");
+        GridBagConstraints gbc_lblState = new GridBagConstraints();
+        gbc_lblState.fill = GridBagConstraints.BOTH;
+        gbc_lblState.insets = new Insets(0, 0, 5, 5);
+        gbc_lblState.gridx = 0;
+        gbc_lblState.gridy = 0;
+        panelInfo.add(lblState, gbc_lblState);
         
         lblCurrentState = new JLabel("stopped");
         GridBagConstraints gbc_lblCurrentState = new GridBagConstraints();
         gbc_lblCurrentState.insets = new Insets(0, 0, 5, 0);
+        gbc_lblCurrentState.fill = GridBagConstraints.BOTH;
         gbc_lblCurrentState.gridx = 1;
-        gbc_lblCurrentState.gridy = 2;
-        frame.getContentPane().add(lblCurrentState, gbc_lblCurrentState);
+        gbc_lblCurrentState.gridy = 0;
+        panelInfo.add(lblCurrentState, gbc_lblCurrentState);
         lblCurrentState.setForeground(Color.RED);
+        
+        JLabel lblWorkingThreads = new JLabel("Working threads:");
+        GridBagConstraints gbc_lblWorkingThreads = new GridBagConstraints();
+        gbc_lblWorkingThreads.anchor = GridBagConstraints.WEST;
+        gbc_lblWorkingThreads.insets = new Insets(0, 0, 5, 5);
+        gbc_lblWorkingThreads.gridx = 0;
+        gbc_lblWorkingThreads.gridy = 1;
+        panelInfo.add(lblWorkingThreads, gbc_lblWorkingThreads);
+        
+        JLabel lblCurrentWorkingThreads = new JLabel("0");
+        GridBagConstraints gbc_lblCurrentWorkingThreads = new GridBagConstraints();
+        gbc_lblCurrentWorkingThreads.insets = new Insets(0, 0, 5, 0);
+        gbc_lblCurrentWorkingThreads.anchor = GridBagConstraints.WEST;
+        gbc_lblCurrentWorkingThreads.gridx = 1;
+        gbc_lblCurrentWorkingThreads.gridy = 1;
+        panelInfo.add(lblCurrentWorkingThreads, gbc_lblCurrentWorkingThreads);
+        
+        JPanel panelConsole = new JPanel();
+        tabbedPaneMonitor.addTab("Console", null, panelConsole, null);
+        GridBagLayout gbl_panelConsole = new GridBagLayout();
+        gbl_panelConsole.columnWidths = new int[]{364, 0};
+        gbl_panelConsole.rowHeights = new int[]{50, 0};
+        gbl_panelConsole.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+        gbl_panelConsole.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+        panelConsole.setLayout(gbl_panelConsole);
+        
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setPreferredSize(new Dimension(100, 50));
+        GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+        gbc_scrollPane.fill = GridBagConstraints.HORIZONTAL;
+        gbc_scrollPane.anchor = GridBagConstraints.NORTH;
+        gbc_scrollPane.gridx = 0;
+        gbc_scrollPane.gridy = 0;
+        panelConsole.add(scrollPane, gbc_scrollPane);
+        
+        JTextPane textPane = new JTextPane();
+        scrollPane.setViewportView(textPane);
         GridBagConstraints gbc_btnStart = new GridBagConstraints();
+        gbc_btnStart.anchor = GridBagConstraints.EAST;
         gbc_btnStart.insets = new Insets(0, 0, 0, 5);
         gbc_btnStart.gridx = 0;
         gbc_btnStart.gridy = 3;
@@ -196,6 +263,7 @@ public class Window {
             }
         });
         GridBagConstraints gbc_btnStop = new GridBagConstraints();
+        gbc_btnStop.anchor = GridBagConstraints.WEST;
         gbc_btnStop.gridx = 1;
         gbc_btnStop.gridy = 3;
         frame.getContentPane().add(btnStop, gbc_btnStop);
