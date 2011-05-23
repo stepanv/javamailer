@@ -47,21 +47,33 @@ package cz.csob.smtp.mailer.gui;
 /*
  * HelloWorldSwing.java requires no other files. 
  */
-import javax.swing.*;
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.awt.Dimension;
-import java.awt.GridBagLayout;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.border.LineBorder;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextPane;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.UIManager;
+import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
-import java.awt.Component;
-import java.awt.GridLayout;
-import javax.swing.border.EtchedBorder;        
+import javax.swing.table.DefaultTableModel;
 
 public class Window {
     private static JButton btnStart = new JButton("Start");
@@ -80,25 +92,22 @@ public class Window {
         JFrame frame = new JFrame("JavaMailer Proxy");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
-        gridBagLayout.columnWidths = new int[]{170, 170, 0};
-        gridBagLayout.rowHeights = new int[]{89, 0, 24, 38, 0};
-        gridBagLayout.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
-        gridBagLayout.rowWeights = new double[]{1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
+        gridBagLayout.columnWidths = new int[]{170, 0};
+        gridBagLayout.rowHeights = new int[]{21, 0, 169, 48, 0};
+        gridBagLayout.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+        gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
         frame.getContentPane().setLayout(gridBagLayout);
         
-        JPanel panel_1 = new JPanel();
-        GridBagConstraints gbc_panel_1 = new GridBagConstraints();
-        gbc_panel_1.gridwidth = 2;
-        gbc_panel_1.insets = new Insets(0, 0, 5, 0);
-        gbc_panel_1.fill = GridBagConstraints.BOTH;
-        gbc_panel_1.gridx = 0;
-        gbc_panel_1.gridy = 0;
-        frame.getContentPane().add(panel_1, gbc_panel_1);
+        JPanel panelImage = new JImagePanel("resources/images/tunnel.png");
+        GridBagConstraints gbc_panelImage = new GridBagConstraints();
+        gbc_panelImage.insets = new Insets(0, 0, 5, 0);
+        gbc_panelImage.gridx = 0;
+        gbc_panelImage.gridy = 0;
+        frame.getContentPane().add(panelImage, gbc_panelImage);
         
         JPanel panelConfiguration = new JPanel();
         panelConfiguration.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         GridBagConstraints gbc_panelConfiguration = new GridBagConstraints();
-        gbc_panelConfiguration.gridwidth = 2;
         gbc_panelConfiguration.insets = new Insets(0, 0, 5, 0);
         gbc_panelConfiguration.fill = GridBagConstraints.BOTH;
         gbc_panelConfiguration.gridx = 0;
@@ -128,12 +137,18 @@ public class Window {
         tableConfiguration.setModel(new DefaultTableModel(
             new Object[][] {
                 {"SMTP server", null},
-                {"", null},
+                {"workers count", null},
+                {"listening port", null},
+                {"allowed clients pattern", null},
             },
             new String[] {
                 "name", "value"
             }
         ) {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -1360372932556984063L;
             boolean[] columnEditables = new boolean[] {
                 false, true
             };
@@ -141,6 +156,8 @@ public class Window {
                 return columnEditables[column];
             }
         });
+        tableConfiguration.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tableConfiguration.getColumnModel().getColumn(1).setPreferredWidth(108);
         
         JScrollPane scrollPane_1 = new JScrollPane();
         tabbedPane.addTab("SSH settings", null, scrollPane_1, null);
@@ -151,13 +168,31 @@ public class Window {
         table.setModel(new DefaultTableModel(
             new Object[][] {
                 {"executable", null},
-                {null, null},
-                {null, null},
+                {"parameters", null},
+                {"additional parameters", null},
+                {"user", null},
+                {"password", null},
+                {"SMTP host", null},
+                {"SMTP port", null},
+                {"SMTP server pretended", null},
             },
             new String[] {
                 "name", "value"
             }
-        ));
+        ) {
+            /**
+             * 
+             */
+            private static final long serialVersionUID = -8143789044797499788L;
+            boolean[] columnEditables = new boolean[] {
+                false, true
+            };
+            public boolean isCellEditable(int row, int column) {
+                return columnEditables[column];
+            }
+        });
+        table.getColumnModel().getColumn(0).setPreferredWidth(124);
+        table.getColumnModel().getColumn(1).setPreferredWidth(340);
         
         JButton btnSave = new JButton("Save");
         GridBagConstraints gbc_btnSave = new GridBagConstraints();
@@ -168,13 +203,10 @@ public class Window {
             public void actionPerformed(ActionEvent e) {
             }
         });
-        tableConfiguration.getColumnModel().getColumn(0).setPreferredWidth(120);
-        tableConfiguration.getColumnModel().getColumn(1).setPreferredWidth(108);
         
         JTabbedPane tabbedPaneMonitor = new JTabbedPane(JTabbedPane.TOP);
         tabbedPaneMonitor.setBorder(new TitledBorder(null, "Monitor", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         GridBagConstraints gbc_tabbedPaneMonitor = new GridBagConstraints();
-        gbc_tabbedPaneMonitor.gridwidth = 2;
         gbc_tabbedPaneMonitor.insets = new Insets(0, 0, 5, 0);
         gbc_tabbedPaneMonitor.fill = GridBagConstraints.BOTH;
         gbc_tabbedPaneMonitor.gridx = 0;
@@ -230,43 +262,47 @@ public class Window {
         gbl_panelConsole.columnWidths = new int[]{364, 0};
         gbl_panelConsole.rowHeights = new int[]{50, 0};
         gbl_panelConsole.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-        gbl_panelConsole.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+        gbl_panelConsole.rowWeights = new double[]{1.0, Double.MIN_VALUE};
         panelConsole.setLayout(gbl_panelConsole);
         
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setPreferredSize(new Dimension(100, 50));
         GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-        gbc_scrollPane.fill = GridBagConstraints.HORIZONTAL;
-        gbc_scrollPane.anchor = GridBagConstraints.NORTH;
+        gbc_scrollPane.fill = GridBagConstraints.BOTH;
         gbc_scrollPane.gridx = 0;
         gbc_scrollPane.gridy = 0;
         panelConsole.add(scrollPane, gbc_scrollPane);
         
-        JTextPane textPane = new JTextPane();
-        scrollPane.setViewportView(textPane);
+        final JTextPane textPaneConsole = new JTextPane();
+        textPaneConsole.setEditable(false);
+        scrollPane.setViewportView(textPaneConsole);
+        
+        JPanel panelControl = new JPanel();
+        panelControl.setPreferredSize(new Dimension(10, 40));
+        panelControl.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Control", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+        GridBagConstraints gbc_panelControl = new GridBagConstraints();
+        gbc_panelControl.fill = GridBagConstraints.BOTH;
+        gbc_panelControl.gridx = 0;
+        gbc_panelControl.gridy = 3;
+        frame.getContentPane().add(panelControl, gbc_panelControl);
+        GridBagLayout gbl_panelControl = new GridBagLayout();
+        gbl_panelControl.columnWidths = new int[]{170, 170, 0};
+        gbl_panelControl.rowHeights = new int[]{38, 0};
+        gbl_panelControl.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
+        gbl_panelControl.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+        panelControl.setLayout(gbl_panelControl);
         GridBagConstraints gbc_btnStart = new GridBagConstraints();
         gbc_btnStart.anchor = GridBagConstraints.EAST;
         gbc_btnStart.insets = new Insets(0, 0, 0, 5);
         gbc_btnStart.gridx = 0;
-        gbc_btnStart.gridy = 3;
-        frame.getContentPane().add(btnStart, gbc_btnStart);
-        
-        
-        btnStart.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("start");
-                lblCurrentState.setText("running");
-                lblCurrentState.setForeground(Color.GREEN);
-                btnStart.setEnabled(false);
-                btnStop.setEnabled(true);
-            }
-        });
+        gbc_btnStart.gridy = 0;
+        panelControl.add(btnStart, gbc_btnStart);
         GridBagConstraints gbc_btnStop = new GridBagConstraints();
         gbc_btnStop.anchor = GridBagConstraints.WEST;
         gbc_btnStop.gridx = 1;
-        gbc_btnStop.gridy = 3;
-        frame.getContentPane().add(btnStop, gbc_btnStop);
+        gbc_btnStop.gridy = 0;
+        panelControl.add(btnStop, gbc_btnStop);
         
         btnStop.setEnabled(false);
         btnStop.addActionListener(new ActionListener() {
@@ -278,9 +314,49 @@ public class Window {
                 btnStop.setEnabled(false);
             }
         });
+        
+        
+        btnStart.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.out.println("start");
+                lblCurrentState.setText("running");
+                lblCurrentState.setForeground(Color.GREEN);
+                btnStart.setEnabled(false);
+                btnStop.setEnabled(true);
+            }
+        });
 
         //Display the window.
         frame.pack();
+        
+        JMenuBar menuBar = new JMenuBar();
+        frame.setJMenuBar(menuBar);
+        
+        JMenu mnNewMenu = new JMenu("Menu");
+        menuBar.add(mnNewMenu);
+        
+        JMenuItem mntmNewMenuItem = new JMenuItem("Exit");
+        mntmNewMenuItem.addActionListener(new ActionListener() {
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textPaneConsole.setText(textPaneConsole.getText() + "\nexiting...");
+                System.exit(0);
+                
+            }
+        });
+        mnNewMenu.add(mntmNewMenuItem);
+        
+        JMenu mnHelp = new JMenu("Help");
+        menuBar.add(mnHelp);
+        
+        JMenuItem mntmAbout = new JMenuItem("About");
+        mntmAbout.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                textPaneConsole.setText(textPaneConsole.getText() + "\nhelp");
+            }
+        });
+        mnHelp.add(mntmAbout);
         frame.setVisible(true);
     }
 
@@ -294,3 +370,30 @@ public class Window {
         });
     }
 }
+class JImagePanel extends JPanel {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 7269311915479728109L;
+    private Image img;
+
+    public JImagePanel(String img) {
+      this(new ImageIcon(img).getImage());
+    }
+
+    public JImagePanel(Image img) {
+      this.img = img;
+      Dimension size = new Dimension(img.getWidth(null), img.getHeight(null));
+      setPreferredSize(size);
+      setMinimumSize(size);
+      setMaximumSize(size);
+      setSize(size);
+      setLayout(null);
+    }
+
+    public void paintComponent(Graphics g) {
+      g.drawImage(img, 0, 0, null);
+    }
+
+  }
