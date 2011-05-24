@@ -23,12 +23,12 @@ public class ControlPanel extends JPanel {
         super();
         setSize(new Dimension(200, 0));
         setMinimumSize(new Dimension(200, 50));
-        createAndShow();
+        create();
     }
 
     public ControlPanel(LayoutManager layout, boolean isDoubleBuffered) {
         super(layout, isDoubleBuffered);
-        createAndShow();
+        create();
     }
     /**
      * 
@@ -49,7 +49,7 @@ public class ControlPanel extends JPanel {
         return constraints;
     }
 
-    private void createAndShow() {
+    private void create() {
         this.setPreferredSize(new Dimension(200, 40));
         this.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Control", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
         GridBagConstraints gbc_panelControl = new GridBagConstraints();
