@@ -47,7 +47,6 @@ package cz.csob.smtp.mailer.gui;
 /*
  * HelloWorldSwing.java requires no other files. 
  */
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -60,7 +59,6 @@ import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -68,20 +66,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.UIManager;
-import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
 public class Window {
-    private static JButton btnStart = new JButton("Start");
-    private static JButton btnStop = new JButton("Stop");
     
-    private static JLabel lblCurrentState;
     private static JTable tableConfiguration;
     private static JTable table;
+    
     /**
      * Create the GUI and show it.  For thread safety,
      * this method should be invoked from the
@@ -204,128 +196,13 @@ public class Window {
             }
         });
         
-        JTabbedPane tabbedPaneMonitor = new JTabbedPane(JTabbedPane.TOP);
-        tabbedPaneMonitor.setBorder(new TitledBorder(null, "Monitor", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        GridBagConstraints gbc_tabbedPaneMonitor = new GridBagConstraints();
-        gbc_tabbedPaneMonitor.insets = new Insets(0, 0, 5, 0);
-        gbc_tabbedPaneMonitor.fill = GridBagConstraints.BOTH;
-        gbc_tabbedPaneMonitor.gridx = 0;
-        gbc_tabbedPaneMonitor.gridy = 2;
-        frame.getContentPane().add(tabbedPaneMonitor, gbc_tabbedPaneMonitor);
+        final MonitorPanel panelMonitor = new MonitorPanel();
+       frame.getContentPane().add(panelMonitor);
         
-        JPanel panelInfo = new JPanel();
-        panelInfo.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
-        tabbedPaneMonitor.addTab("Info", null, panelInfo, null);
-        GridBagLayout gbl_panelInfo = new GridBagLayout();
-        gbl_panelInfo.columnWidths = new int[]{200, 200, 0};
-        gbl_panelInfo.rowHeights = new int[]{14, 14, 0, 0};
-        gbl_panelInfo.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
-        gbl_panelInfo.rowWeights = new double[]{0.0, 0.0, 1.0, Double.MIN_VALUE};
-        panelInfo.setLayout(gbl_panelInfo);
+        ControlPanel panelControl = new ControlPanel();
+        panelControl.setMonitorPanel(panelMonitor);
+        frame.getContentPane().add(panelControl, panelControl.getConstraints());
         
-        JLabel lblState = new JLabel("State:");
-        GridBagConstraints gbc_lblState = new GridBagConstraints();
-        gbc_lblState.fill = GridBagConstraints.BOTH;
-        gbc_lblState.insets = new Insets(0, 0, 5, 5);
-        gbc_lblState.gridx = 0;
-        gbc_lblState.gridy = 0;
-        panelInfo.add(lblState, gbc_lblState);
-        
-        lblCurrentState = new JLabel("stopped");
-        GridBagConstraints gbc_lblCurrentState = new GridBagConstraints();
-        gbc_lblCurrentState.insets = new Insets(0, 0, 5, 0);
-        gbc_lblCurrentState.fill = GridBagConstraints.BOTH;
-        gbc_lblCurrentState.gridx = 1;
-        gbc_lblCurrentState.gridy = 0;
-        panelInfo.add(lblCurrentState, gbc_lblCurrentState);
-        lblCurrentState.setForeground(Color.RED);
-        
-        JLabel lblWorkingThreads = new JLabel("Working threads:");
-        GridBagConstraints gbc_lblWorkingThreads = new GridBagConstraints();
-        gbc_lblWorkingThreads.anchor = GridBagConstraints.WEST;
-        gbc_lblWorkingThreads.insets = new Insets(0, 0, 5, 5);
-        gbc_lblWorkingThreads.gridx = 0;
-        gbc_lblWorkingThreads.gridy = 1;
-        panelInfo.add(lblWorkingThreads, gbc_lblWorkingThreads);
-        
-        JLabel lblCurrentWorkingThreads = new JLabel("0");
-        GridBagConstraints gbc_lblCurrentWorkingThreads = new GridBagConstraints();
-        gbc_lblCurrentWorkingThreads.insets = new Insets(0, 0, 5, 0);
-        gbc_lblCurrentWorkingThreads.anchor = GridBagConstraints.WEST;
-        gbc_lblCurrentWorkingThreads.gridx = 1;
-        gbc_lblCurrentWorkingThreads.gridy = 1;
-        panelInfo.add(lblCurrentWorkingThreads, gbc_lblCurrentWorkingThreads);
-        
-        JPanel panelConsole = new JPanel();
-        tabbedPaneMonitor.addTab("Console", null, panelConsole, null);
-        GridBagLayout gbl_panelConsole = new GridBagLayout();
-        gbl_panelConsole.columnWidths = new int[]{364, 0};
-        gbl_panelConsole.rowHeights = new int[]{50, 0};
-        gbl_panelConsole.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-        gbl_panelConsole.rowWeights = new double[]{1.0, Double.MIN_VALUE};
-        panelConsole.setLayout(gbl_panelConsole);
-        
-        JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setPreferredSize(new Dimension(100, 50));
-        GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-        gbc_scrollPane.fill = GridBagConstraints.BOTH;
-        gbc_scrollPane.gridx = 0;
-        gbc_scrollPane.gridy = 0;
-        panelConsole.add(scrollPane, gbc_scrollPane);
-        
-        final JTextPane textPaneConsole = new JTextPane();
-        textPaneConsole.setEditable(false);
-        scrollPane.setViewportView(textPaneConsole);
-        
-        JPanel panelControl = new JPanel();
-        panelControl.setPreferredSize(new Dimension(10, 40));
-        panelControl.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Control", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        GridBagConstraints gbc_panelControl = new GridBagConstraints();
-        gbc_panelControl.fill = GridBagConstraints.BOTH;
-        gbc_panelControl.gridx = 0;
-        gbc_panelControl.gridy = 3;
-        frame.getContentPane().add(panelControl, gbc_panelControl);
-        GridBagLayout gbl_panelControl = new GridBagLayout();
-        gbl_panelControl.columnWidths = new int[]{170, 170, 0};
-        gbl_panelControl.rowHeights = new int[]{38, 0};
-        gbl_panelControl.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
-        gbl_panelControl.rowWeights = new double[]{0.0, Double.MIN_VALUE};
-        panelControl.setLayout(gbl_panelControl);
-        GridBagConstraints gbc_btnStart = new GridBagConstraints();
-        gbc_btnStart.anchor = GridBagConstraints.EAST;
-        gbc_btnStart.insets = new Insets(0, 0, 0, 5);
-        gbc_btnStart.gridx = 0;
-        gbc_btnStart.gridy = 0;
-        panelControl.add(btnStart, gbc_btnStart);
-        GridBagConstraints gbc_btnStop = new GridBagConstraints();
-        gbc_btnStop.anchor = GridBagConstraints.WEST;
-        gbc_btnStop.gridx = 1;
-        gbc_btnStop.gridy = 0;
-        panelControl.add(btnStop, gbc_btnStop);
-        
-        btnStop.setEnabled(false);
-        btnStop.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("stop");
-                lblCurrentState.setText("stopped");
-                lblCurrentState.setForeground(Color.RED);
-                btnStart.setEnabled(true);
-                btnStop.setEnabled(false);
-            }
-        });
-        
-        
-        btnStart.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("start");
-                lblCurrentState.setText("running");
-                lblCurrentState.setForeground(Color.GREEN);
-                btnStart.setEnabled(false);
-                btnStop.setEnabled(true);
-            }
-        });
-
         //Display the window.
         frame.pack();
         
@@ -340,7 +217,7 @@ public class Window {
             
             @Override
             public void actionPerformed(ActionEvent e) {
-                textPaneConsole.setText(textPaneConsole.getText() + "\nexiting...");
+                //tabbedPaneMonitor.appendToConsole("exiting...");
                 System.exit(0);
                 
             }
@@ -353,7 +230,7 @@ public class Window {
         JMenuItem mntmAbout = new JMenuItem("About");
         mntmAbout.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                textPaneConsole.setText(textPaneConsole.getText() + "\nhelp");
+                //tabbedPaneMonitor.appendToConsole("help");
             }
         });
         mnHelp.add(mntmAbout);
