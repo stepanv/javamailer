@@ -30,33 +30,17 @@ package cz.csob.smtp.mailer.gui;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */ 
 
-/**
- * This example, like all Swing examples, exists in a package:
- * in this case, the "start" package.
- * If you are using an IDE, such as NetBeans, this should work 
- * seamlessly.  If you are compiling and running the examples
- * from the command-line, this may be confusing if you aren't
- * used to using named packages.  In most cases,
- * the quick and dirty solution is to delete or comment out
- * the "package" line from all the source files and the code
- * should work as expected.  For an explanation of how to
- * use the Swing examples as-is from the command line, see
- * http://download.oracle.com/javase/javatutorials/tutorial/uiswing/start/compile.html#package
- */
 
 /*
  * HelloWorldSwing.java requires no other files. 
  */
 import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -90,7 +74,7 @@ public class Window {
         gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
         frame.getContentPane().setLayout(gridBagLayout);
         
-        JPanel panelImage = new JImagePanel("resources/images/tunnel.png");
+        JPanel panelImage = new ImagePanel("resources/images/tunnel.png");
         GridBagConstraints gbc_panelImage = new GridBagConstraints();
         gbc_panelImage.insets = new Insets(0, 0, 5, 0);
         gbc_panelImage.gridx = 0;
@@ -230,7 +214,7 @@ public class Window {
         JMenuItem mntmAbout = new JMenuItem("About");
         mntmAbout.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                //tabbedPaneMonitor.appendToConsole("help");
+                panelMonitor.appendToConsole("help");
             }
         });
         mnHelp.add(mntmAbout);
@@ -247,30 +231,3 @@ public class Window {
         });
     }
 }
-class JImagePanel extends JPanel {
-
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 7269311915479728109L;
-    private Image img;
-
-    public JImagePanel(String img) {
-      this(new ImageIcon(img).getImage());
-    }
-
-    public JImagePanel(Image img) {
-      this.img = img;
-      Dimension size = new Dimension(img.getWidth(null), img.getHeight(null));
-      setPreferredSize(size);
-      setMinimumSize(size);
-      setMaximumSize(size);
-      setSize(size);
-      setLayout(null);
-    }
-
-    public void paintComponent(Graphics g) {
-      g.drawImage(img, 0, 0, null);
-    }
-
-  }

@@ -21,6 +21,8 @@ public class ControlPanel extends JPanel {
      */
     public ControlPanel() {
         super();
+        setSize(new Dimension(200, 0));
+        setMinimumSize(new Dimension(200, 50));
         createAndShow();
     }
 
@@ -33,7 +35,7 @@ public class ControlPanel extends JPanel {
      */
     private static final long serialVersionUID = 6893318104120281770L;
     
-    private JButton btnStart = new JButton("Stop");
+    private JButton btnStart = new JButton("Start");
     private JButton btnStop = new JButton("Stop");
     
     private MonitorPanel monitorPanel;
@@ -48,7 +50,7 @@ public class ControlPanel extends JPanel {
     }
 
     private void createAndShow() {
-        this.setPreferredSize(new Dimension(10, 40));
+        this.setPreferredSize(new Dimension(200, 40));
         this.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Control", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
         GridBagConstraints gbc_panelControl = new GridBagConstraints();
         gbc_panelControl.fill = GridBagConstraints.BOTH;
@@ -59,7 +61,7 @@ public class ControlPanel extends JPanel {
         
         
         GridBagLayout gbl_panelControl = new GridBagLayout();
-        gbl_panelControl.columnWidths = new int[]{170, 170, 0};
+        gbl_panelControl.columnWidths = new int[]{37, 36, 0};
         gbl_panelControl.rowHeights = new int[]{38, 0};
         gbl_panelControl.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
         gbl_panelControl.rowWeights = new double[]{0.0, Double.MIN_VALUE};
@@ -74,6 +76,7 @@ public class ControlPanel extends JPanel {
         gbc_btnStop.anchor = GridBagConstraints.WEST;
         gbc_btnStop.gridx = 1;
         gbc_btnStop.gridy = 0;
+        btnStop.setMaximumSize(new Dimension(100, 23));
         this.add(btnStop, gbc_btnStop);
         
         btnStop.setEnabled(false);
