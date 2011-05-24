@@ -29,23 +29,9 @@ public class ConfigurationPanel extends JPanel {
     private static final long serialVersionUID = 8856476596567368653L;
     private JTable tableConfiguration;
     private JTable table;
-    private Object constraints;
-    
-    /**
-     * @return the constraints
-     */
-    public Object getConstraints() {
-        return constraints;
-    }
 
     private void create() {
         this.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        GridBagConstraints gbc_panelConfiguration = new GridBagConstraints();
-        gbc_panelConfiguration.insets = new Insets(0, 0, 5, 0);
-        gbc_panelConfiguration.fill = GridBagConstraints.BOTH;
-        gbc_panelConfiguration.gridx = 0;
-        gbc_panelConfiguration.gridy = 1;
-        constraints = gbc_panelConfiguration;
         
         GridBagLayout gbl_panelConfiguration = new GridBagLayout();
         gbl_panelConfiguration.columnWidths = new int[]{305, 0};

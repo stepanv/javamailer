@@ -7,7 +7,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
-public class Menu extends JMenuBar {
+public class MainMenu extends JMenuBar {
     
     /**
      * 
@@ -15,7 +15,7 @@ public class Menu extends JMenuBar {
     private static final long serialVersionUID = -3747254730113993085L;
     MonitorPanel panelMonitor;
     
-    public Menu() {
+    public MainMenu() {
         super();
         create();
     }

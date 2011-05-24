@@ -43,22 +43,10 @@ public class ControlPanel extends JPanel {
     public void setMonitorPanel(MonitorPanel monitorPanel) {
         this.monitorPanel = monitorPanel;
     }
-    private Object constraints;
-    
-    public Object getConstraints() {
-        return constraints;
-    }
 
     private void create() {
         this.setPreferredSize(new Dimension(200, 40));
         this.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Control", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        GridBagConstraints gbc_panelControl = new GridBagConstraints();
-        gbc_panelControl.fill = GridBagConstraints.BOTH;
-        gbc_panelControl.gridx = 0;
-        gbc_panelControl.gridy = 3;
-        constraints = gbc_panelControl;
-        
-        
         
         GridBagLayout gbl_panelControl = new GridBagLayout();
         gbl_panelControl.columnWidths = new int[]{37, 36, 0};

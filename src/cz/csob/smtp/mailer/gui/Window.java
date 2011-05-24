@@ -1,4 +1,5 @@
 package cz.csob.smtp.mailer.gui;
+
 /*
  * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
  *
@@ -28,8 +29,7 @@ package cz.csob.smtp.mailer.gui;
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */ 
-
+ */
 
 /*
  * HelloWorldSwing.java requires no other files. 
@@ -42,55 +42,68 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class Window {
-    
+
     /**
-     * Create the GUI and show it.  For thread safety,
-     * this method should be invoked from the
-     * event-dispatching thread.
+     * Create the GUI and show it. For thread safety, this method should be
+     * invoked from the event-dispatching thread.
      */
     private static void createAndShowGUI() {
-        //Create and set up the window.
+        // Create and set up the window.
         JFrame frame = new JFrame("JavaMailer Proxy");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
-        gridBagLayout.columnWidths = new int[]{170, 0};
-        gridBagLayout.rowHeights = new int[]{21, 0, 169, 48, 0};
-        gridBagLayout.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-        gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
+        gridBagLayout.columnWidths = new int[] { 170, 0 };
+        gridBagLayout.rowHeights = new int[] { 21, 0, 169, 48, 0 };
+        gridBagLayout.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
+        gridBagLayout.rowWeights = new double[] { 0.0, 1.0, 1.0, 0.0,
+                Double.MIN_VALUE };
         frame.getContentPane().setLayout(gridBagLayout);
-        
+
         JPanel panelImage = new ImagePanel("resources/images/tunnel.png");
         GridBagConstraints gbc_panelImage = new GridBagConstraints();
         gbc_panelImage.insets = new Insets(0, 0, 5, 0);
         gbc_panelImage.gridx = 0;
         gbc_panelImage.gridy = 0;
         frame.getContentPane().add(panelImage, gbc_panelImage);
-        
-        ConfigurationPanel panelConfiguration= new ConfigurationPanel();
-        frame.getContentPane().add(panelConfiguration, panelConfiguration.getConstraints());
-        
-        final MonitorPanel panelMonitor = new MonitorPanel();
-       frame.getContentPane().add(panelMonitor, panelMonitor.getConstraints());
-        
+
+        ConfigurationPanel panelConfiguration = new ConfigurationPanel();
+        GridBagConstraints gbc_panelConfiguration = new GridBagConstraints();
+        gbc_panelConfiguration.insets = new Insets(0, 0, 5, 0);
+        gbc_panelConfiguration.fill = GridBagConstraints.BOTH;
+        gbc_panelConfiguration.gridx = 0;
+        gbc_panelConfiguration.gridy = 1;
+        frame.getContentPane().add(panelConfiguration,
+                gbc_panelConfiguration);
+
+        MonitorPanel panelMonitor = new MonitorPanel();
+        GridBagConstraints gbc_panelMonitor = new GridBagConstraints();
+        gbc_panelMonitor.fill = GridBagConstraints.BOTH;
+        gbc_panelMonitor.insets = new Insets(0, 0, 5, 0);
+        gbc_panelMonitor.gridx = 0;
+        gbc_panelMonitor.gridy = 2;
+        frame.getContentPane().add(panelMonitor, gbc_panelMonitor);
+
         ControlPanel panelControl = new ControlPanel();
         panelControl.setMonitorPanel(panelMonitor);
-        frame.getContentPane().add(panelControl, panelControl.getConstraints());
-        
-        //Display the window.
+        GridBagConstraints gbc_panelControl = new GridBagConstraints();
+        gbc_panelControl.fill = GridBagConstraints.BOTH;
+        gbc_panelControl.gridx = 0;
+        gbc_panelControl.gridy = 3;
+        frame.getContentPane().add(panelControl, gbc_panelControl);
+
+        // Display the window.
         frame.pack();
-        
-        
-        
-        Menu menuBar = new Menu();
+
+        MainMenu menuBar = new MainMenu();
         menuBar.setPanelMonitor(panelMonitor);
         frame.setJMenuBar(menuBar);
-        
+
         frame.setVisible(true);
     }
 
     public static void main(String[] args) {
-        //Schedule a job for the event-dispatching thread:
-        //creating and showing this application's GUI.
+        // Schedule a job for the event-dispatching thread:
+        // creating and showing this application's GUI.
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 createAndShowGUI();
