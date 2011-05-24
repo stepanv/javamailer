@@ -37,13 +37,8 @@ package cz.csob.smtp.mailer.gui;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 
 public class Window {
@@ -84,34 +79,12 @@ public class Window {
         //Display the window.
         frame.pack();
         
-        JMenuBar menuBar = new JMenuBar();
+        
+        
+        Menu menuBar = new Menu();
+        menuBar.setPanelMonitor(panelMonitor);
         frame.setJMenuBar(menuBar);
         
-        JMenu mnNewMenu = new JMenu("Menu");
-        menuBar.add(mnNewMenu);
-        
-        JMenuItem mntmNewMenuItem = new JMenuItem("Exit");
-        mntmNewMenuItem.addActionListener(new ActionListener() {
-            
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                //tabbedPaneMonitor.appendToConsole("exiting...");
-                System.exit(0);
-                
-            }
-        });
-        mnNewMenu.add(mntmNewMenuItem);
-        
-        JMenu mnHelp = new JMenu("Help");
-        menuBar.add(mnHelp);
-        
-        JMenuItem mntmAbout = new JMenuItem("About");
-        mntmAbout.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                panelMonitor.appendToConsole("help");
-            }
-        });
-        mnHelp.add(mntmAbout);
         frame.setVisible(true);
     }
 
