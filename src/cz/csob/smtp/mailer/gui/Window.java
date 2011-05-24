@@ -120,16 +120,16 @@ public class Window {
         gbl_panelConfiguration.rowWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
         panelConfiguration.setLayout(gbl_panelConfiguration);
         
-        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        GridBagConstraints gbc_tabbedPane = new GridBagConstraints();
-        gbc_tabbedPane.fill = GridBagConstraints.BOTH;
-        gbc_tabbedPane.insets = new Insets(0, 0, 5, 0);
-        gbc_tabbedPane.gridx = 0;
-        gbc_tabbedPane.gridy = 0;
-        panelConfiguration.add(tabbedPane, gbc_tabbedPane);
+        JTabbedPane tabbedPaneConfiguration = new JTabbedPane(JTabbedPane.TOP);
+        GridBagConstraints gbc_tabbedPaneConfiguration = new GridBagConstraints();
+        gbc_tabbedPaneConfiguration.fill = GridBagConstraints.BOTH;
+        gbc_tabbedPaneConfiguration.insets = new Insets(0, 0, 5, 0);
+        gbc_tabbedPaneConfiguration.gridx = 0;
+        gbc_tabbedPaneConfiguration.gridy = 0;
+        panelConfiguration.add(tabbedPaneConfiguration, gbc_tabbedPaneConfiguration);
         
         JScrollPane scrollPaneConfiguration = new JScrollPane();
-        tabbedPane.addTab("Server settings", null, scrollPaneConfiguration, null);
+        tabbedPaneConfiguration.addTab("Server settings", null, scrollPaneConfiguration, null);
         
         tableConfiguration = new JTable();
         scrollPaneConfiguration.setPreferredSize(new Dimension(400, 100));
@@ -160,7 +160,7 @@ public class Window {
         tableConfiguration.getColumnModel().getColumn(1).setPreferredWidth(108);
         
         JScrollPane scrollPane_1 = new JScrollPane();
-        tabbedPane.addTab("SSH settings", null, scrollPane_1, null);
+        tabbedPaneConfiguration.addTab("SSH settings", null, scrollPane_1, null);
         scrollPane_1.setPreferredSize(new Dimension(300, 100));
         
         table = new JTable();
@@ -204,14 +204,27 @@ public class Window {
             }
         });
         
+        JPanel panelMonitor = new JPanel();
+        GridBagConstraints gbc_panelMonitor = new GridBagConstraints();
+        gbc_panelMonitor.fill = GridBagConstraints.BOTH;
+        gbc_panelMonitor.insets = new Insets(0, 0, 5, 0);
+        gbc_panelMonitor.gridx = 0;
+        gbc_panelMonitor.gridy = 2;
+        frame.getContentPane().add(panelMonitor, gbc_panelMonitor);
+        GridBagLayout gbl_panelMonitor = new GridBagLayout();
+        gbl_panelMonitor.columnWidths = new int[]{170, 0};
+        gbl_panelMonitor.rowHeights = new int[]{169, 0};
+        gbl_panelMonitor.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+        gbl_panelMonitor.rowWeights = new double[]{1.0, Double.MIN_VALUE};
+        panelMonitor.setLayout(gbl_panelMonitor);
+        
         JTabbedPane tabbedPaneMonitor = new JTabbedPane(JTabbedPane.TOP);
-        tabbedPaneMonitor.setBorder(new TitledBorder(null, "Monitor", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         GridBagConstraints gbc_tabbedPaneMonitor = new GridBagConstraints();
-        gbc_tabbedPaneMonitor.insets = new Insets(0, 0, 5, 0);
         gbc_tabbedPaneMonitor.fill = GridBagConstraints.BOTH;
         gbc_tabbedPaneMonitor.gridx = 0;
-        gbc_tabbedPaneMonitor.gridy = 2;
-        frame.getContentPane().add(tabbedPaneMonitor, gbc_tabbedPaneMonitor);
+        gbc_tabbedPaneMonitor.gridy = 0;
+        panelMonitor.add(tabbedPaneMonitor, gbc_tabbedPaneMonitor);
+        tabbedPaneMonitor.setBorder(new TitledBorder(null, "Monitor", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         
         JPanel panelInfo = new JPanel();
         panelInfo.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
