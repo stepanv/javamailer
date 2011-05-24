@@ -56,7 +56,7 @@ public class MonitorPanel extends JPanel {
         gbc_panelMonitor.fill = GridBagConstraints.BOTH;
         gbc_panelMonitor.insets = new Insets(0, 0, 5, 0);
         gbc_panelMonitor.gridx = 0;
-        gbc_panelMonitor.gridy = 0;
+        gbc_panelMonitor.gridy = 2;
         constraints = gbc_panelMonitor;
         
         GridBagLayout gbl_panelMonitor = new GridBagLayout();
@@ -68,6 +68,7 @@ public class MonitorPanel extends JPanel {
                                                         
                                                         tabbedPaneMonitor = new JTabbedPane(JTabbedPane.TOP);
                                                         GridBagConstraints gbc_tabbedPaneMonitor = new GridBagConstraints();
+                                                        gbc_tabbedPaneMonitor.fill = GridBagConstraints.BOTH;
                                                         gbc_tabbedPaneMonitor.gridx = 0;
                                                         gbc_tabbedPaneMonitor.gridy = 0;
                                                         this.add(tabbedPaneMonitor, gbc_tabbedPaneMonitor);

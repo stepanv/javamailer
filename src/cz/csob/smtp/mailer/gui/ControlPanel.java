@@ -33,7 +33,7 @@ public class ControlPanel extends JPanel {
      */
     private static final long serialVersionUID = 6893318104120281770L;
     
-    private JButton btnStart = new JButton("S");
+    private JButton btnStart = new JButton("Stop");
     private JButton btnStop = new JButton("Stop");
     
     private MonitorPanel monitorPanel;
