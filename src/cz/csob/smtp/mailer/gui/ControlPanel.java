@@ -14,8 +14,10 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
+import cz.csob.smtp.mailer.Mailer;
+
 public class ControlPanel extends JPanel {
- 
+
     /**
      * @wbp.parser.constructor
      */
@@ -30,29 +32,34 @@ public class ControlPanel extends JPanel {
         super(layout, isDoubleBuffered);
         create();
     }
+
     /**
      * 
      */
     private static final long serialVersionUID = 6893318104120281770L;
-    
+
     private JButton btnStart = new JButton("Start");
     private JButton btnStop = new JButton("Stop");
-    
+
     private MonitorPanel monitorPanel;
-    
+
     public void setMonitorPanel(MonitorPanel monitorPanel) {
         this.monitorPanel = monitorPanel;
     }
 
     private void create() {
         this.setPreferredSize(new Dimension(200, 40));
-        this.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Control", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
-        
+        this.setBorder(new TitledBorder(UIManager
+                .getBorder("TitledBorder.border"), "Control",
+                TitledBorder.LEADING, TitledBorder.TOP, null,
+                new Color(0, 0, 0)));
+
         GridBagLayout gbl_panelControl = new GridBagLayout();
-        gbl_panelControl.columnWidths = new int[]{37, 36, 0};
-        gbl_panelControl.rowHeights = new int[]{38, 0};
-        gbl_panelControl.columnWeights = new double[]{1.0, 1.0, Double.MIN_VALUE};
-        gbl_panelControl.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+        gbl_panelControl.columnWidths = new int[] { 37, 36, 0 };
+        gbl_panelControl.rowHeights = new int[] { 38, 0 };
+        gbl_panelControl.columnWeights = new double[] { 1.0, 1.0,
+                Double.MIN_VALUE };
+        gbl_panelControl.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
         this.setLayout(gbl_panelControl);
         GridBagConstraints gbc_btnStart = new GridBagConstraints();
         gbc_btnStart.anchor = GridBagConstraints.EAST;
@@ -66,28 +73,32 @@ public class ControlPanel extends JPanel {
         gbc_btnStop.gridy = 0;
         btnStop.setMaximumSize(new Dimension(100, 23));
         this.add(btnStop, gbc_btnStop);
-        
+
         btnStop.setEnabled(false);
         btnStop.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("stop");
                 monitorPanel.getLblCurrentState().setText("stopped");
                 monitorPanel.getLblCurrentState().setForeground(Color.RED);
                 btnStart.setEnabled(true);
                 btnStop.setEnabled(false);
+                
+                mailer.stopAsync();
             }
         });
-        
-        
+
         btnStart.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                System.out.println("start");
                 monitorPanel.getLblCurrentState().setText("running");
                 monitorPanel.getLblCurrentState().setForeground(Color.GREEN);
                 btnStart.setEnabled(false);
                 btnStop.setEnabled(true);
+                
+                mailer.startAsync();
+
             }
         });
     }
 
+    Mailer mailer = new Mailer();
+    
 }

@@ -13,156 +13,186 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 
 public class Mailer {
-	/**
-	 * We must use CRLF end-of-line endings for a network communication.
-	 * 
-	 * @see http://www.rfc-editor.org/EOLstory.txt
-	 */
-	public static final byte[] EOL = { (byte) '\r', (byte) '\n' };
+    /**
+     * We must use CRLF end-of-line endings for a network communication.
+     * 
+     * @see http://www.rfc-editor.org/EOLstory.txt
+     */
+    public static final byte[] EOL = { (byte) '\r', (byte) '\n' };
 
-	private static Logger logger = Logger.getLogger(Mailer.class.getName());
+    private static Logger logger = Logger.getLogger(Mailer.class.getName());
 
-	static PrintStream log = null;
+    static PrintStream log = null;
 
-	/**
-	 * Where worker threads stand idle
-	 */
-	private static Vector<Sender> workersIdlePool = new Vector<Sender>();
+    /**
+     * Where worker threads stand idle
+     */
+    private static Vector<Sender> workersIdlePool = new Vector<Sender>();
 
-	/**
-	 * In case that there isn't enough idle thread in the pool add worker to the
-	 * pool.
-	 * 
-	 * @param worker
-	 * @return indication whether the worker was or wasn't added to the idle
-	 *         pool.
-	 */
-	public static boolean conditionallyAddWorkerToTheIdlePool(Sender worker) {
-		synchronized (workersIdlePool) {
-			if (workersIdlePool.size() >= Configuration.workers) {
-				/* too many threads, exit this one */
-				return false;
-			} else {
-				workersIdlePool.addElement(worker);
-				return true;
-			}
-		}
-	}
+    /**
+     * In case that there isn't enough idle thread in the pool add worker to the
+     * pool.
+     * 
+     * @param worker
+     * @return indication whether the worker was or wasn't added to the idle
+     *         pool.
+     */
+    public static boolean conditionallyAddWorkerToTheIdlePool(Sender worker) {
+        synchronized (workersIdlePool) {
+            if (workersIdlePool.size() >= Configuration.workers) {
+                /* too many threads, exit this one */
+                return false;
+            } else {
+                workersIdlePool.addElement(worker);
+                return true;
+            }
+        }
+    }
 
-	/**
-	 * Running threads
-	 */
-	private static Vector<Sender> workersRunning = new Vector<Sender>();
+    /**
+     * Running threads
+     */
+    private static Vector<Sender> workersRunning = new Vector<Sender>();
 
-	public static void addRunningWorker(Sender worker) {
-		synchronized (workersRunning) {
-			workersRunning.add(worker);
-		}
-	}
+    public static void addRunningWorker(Sender worker) {
+        synchronized (workersRunning) {
+            workersRunning.add(worker);
+        }
+    }
 
-	public static void removeRunningWorker(Sender worker) {
-		synchronized (workersRunning) {
-			workersRunning.remove(worker);
-		}
-	}
+    public static void removeRunningWorker(Sender worker) {
+        synchronized (workersRunning) {
+            workersRunning.remove(worker);
+        }
+    }
 
-	static void printProps() {
-		logger.info("timeout= " + Configuration.timeout);
-		logger.info("workers= " + Configuration.workers);
-		logger.info("port= " + Configuration.port);
-	}
+    static void printProps() {
+        logger.info("timeout= " + Configuration.timeout);
+        logger.info("workers= " + Configuration.workers);
+        logger.info("port= " + Configuration.port);
+    }
 
-	private static boolean inShutdownHook = false;
+    private boolean inShutdownHook = false;
 
-	static {
-		// Add the shutdown hook as new java thread to the runtime.
-		// can be added as inner class or a separate class that implements
-		// Runnable or extends Thread
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				logger.debug("in : run () : shutdownHook");
+    public Mailer() {
+        // Add the shutdown hook as new java thread to the runtime.
+        // can be added as inner class or a separate class that implements
+        // Runnable or extends Thread
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                logger.debug("in : run () : shutdownHook");
 
-				inShutdownHook = true;
-				synchronized (workersRunning) {
-					for (int i = 0; i < workersRunning.size(); ++i) {
-						Sender worker = workersRunning.elementAt(i);
-						logger.info("Worker " + worker.getId() + "stopping...");
-						worker.stopFast();
-					}
-				}
+                inShutdownHook = true;
+                synchronized (workersRunning) {
+                    for (int i = 0; i < workersRunning.size(); ++i) {
+                        Sender worker = workersRunning.elementAt(i);
+                        logger.info("Worker " + worker.getId() + "stopping...");
+                        worker.stopFast();
+                    }
+                }
 
-				logger.debug("Shutdown hook completed...");
-			}
-		});
-	}
+                logger.debug("Shutdown hook completed...");
+            }
+        });
+    }
 
-	/**
-	 * Main mathod of Mailer program.
-	 * 
-	 * @param args
-	 *            as program arguments
-	 * @throws Exception
-	 */
-	public static void main(String[] args) {
+    public void stopAsync() {
+        inShutdownHook = true;
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            logger.debug(e);
+        }
+        for (Sender sender : workersIdlePool) {
+            sender.stopFast();
+        }
+    }
 
-		if (args.length > 0) {
-			int port;
-			try {
-				port = Integer.parseInt(args[0]);
-				Configuration.port = port;
-			} catch (NumberFormatException e) {
-				logger.error("Program port argument '" + args[0]
-						+ "' not an integer");
-			}
-		}
-		
-		Configuration.touch();
+    public void startAsync() {
+        inShutdownHook = false;
+        final Mailer mailer = this;
+        Thread mailerThread = new Thread(new Runnable() {
+            public void run() {
+                mailer.start();
+            }
+        });
+        mailerThread.start();
+    }
 
-		logger.info("Configuration file contains: "
-				+ Configuration.currentConfiguration());
+    ServerSocket serverSocket;
 
-		/* start worker threads */
-		for (int i = 0; i < Configuration.workers; ++i) {
-			Sender w = new Sender();
-			w.start();
-			logger.info("worker thread " + w.getId() + " started");
-			workersIdlePool.addElement(w);
-		}
+    public void start() {
+        Configuration.touch();
 
-		try {
+        logger.info("Configuration file contains: "
+                + Configuration.currentConfiguration());
 
-			/* create a socket on a specified port */
-			logger.debug("creating socket at port: " + Configuration.port);
-			ServerSocket serverSocket = new ServerSocket(Configuration.port);
+        /* start worker threads */
+        for (int i = 0; i < Configuration.workers; ++i) {
+            Sender w = new Sender();
+            w.start();
+            logger.info("worker thread " + w.getId() + " started");
+            workersIdlePool.addElement(w);
+        }
 
-			/* main program loop */
-			while (true) {
-				if (inShutdownHook) {
-					return;
-				}
-				try {
-					Socket socketToAClient = serverSocket.accept();
+        try {
 
-					Sender worker = null;
-					synchronized (workersIdlePool) {
-						if (workersIdlePool.isEmpty()) {
-							worker = new Sender(socketToAClient);
-							worker.start();
-							logger.info("worker " + worker.getId() + " started");
-						} else {
-							worker = workersIdlePool.elementAt(0);
-							workersIdlePool.removeElementAt(0);
-							worker.setSocketToAClient(socketToAClient);
-						}
-					}
-				} catch (IOException e) {
-					logger.info("Communication with client was forcefully ended.");
-				}
-			}
-		} catch (IOException e) {
-			logger.error("Cannot open socket at port: " + Configuration.port);
-		}
+            /* create a socket on a specified port */
+            logger.debug("creating socket at port: " + Configuration.port);
+            serverSocket = new ServerSocket(Configuration.port);
 
-		logger.info("Mailer in shutdown");
-	}
+            /* main program loop */
+            while (true) {
+                if (inShutdownHook) {
+                    return;
+                }
+                try {
+                    Socket socketToAClient = serverSocket.accept();
+
+                    Sender worker = null;
+                    synchronized (workersIdlePool) {
+                        if (workersIdlePool.isEmpty()) {
+                            worker = new Sender(socketToAClient);
+                            worker.start();
+                            logger.info("worker " + worker.getId() + " started");
+                        } else {
+                            worker = workersIdlePool.elementAt(0);
+                            workersIdlePool.removeElementAt(0);
+                            worker.setSocketToAClient(socketToAClient);
+                        }
+                    }
+                } catch (IOException e) {
+                    logger.info("Listening on port " + Configuration.port + " was forcefully ended.");
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Cannot open socket at port: " + Configuration.port);
+        }
+        logger.debug("Mailer main thread ending");
+    }
+
+    /**
+     * Main mathod of Mailer program.
+     * 
+     * @param args
+     *            as program arguments
+     * @throws Exception
+     */
+    public static void main(String[] args) {
+
+        if (args.length > 0) {
+            int port;
+            try {
+                port = Integer.parseInt(args[0]);
+                Configuration.port = port;
+            } catch (NumberFormatException e) {
+                logger.error("Program port argument '" + args[0]
+                        + "' not an integer");
+            }
+        }
+
+        new Mailer().start();
+
+        logger.info("Mailer in shutdown");
+    }
 }

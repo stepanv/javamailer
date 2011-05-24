@@ -14,6 +14,7 @@ import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+import java.awt.Component;
 
 public class MonitorPanel extends JPanel {
 
@@ -36,16 +37,20 @@ public class MonitorPanel extends JPanel {
         this.lblCurrentState = lblCurrentState;
     }
 
-    public void appendToConsole(String text) {
-        textPaneConsole.setText(textPaneConsole.getText() + text + "\n");
+    public synchronized void appendToConsole(String text) {
+        //textPaneConsole.setText(textPaneConsole.getText() + text + "\n");
+        textPaneConsole.setText(textPaneConsole.getText() + "aaa" + "\n");
+        //scrollPane.doLayout();
+        //textPaneConsole.doLayout();
+        this.repaint();
     }
 
     final JTextPane textPaneConsole = new JTextPane();
+    JScrollPane scrollPane = new JScrollPane();
 
     JTabbedPane tabbedPaneMonitor = new JTabbedPane(JTabbedPane.TOP);
 
     private void create() {
-        
 
         GridBagLayout gbl_panelMonitor = new GridBagLayout();
         gbl_panelMonitor.columnWidths = new int[] { 170, 0 };
@@ -115,8 +120,8 @@ public class MonitorPanel extends JPanel {
         gbl_panelConsole.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
         gbl_panelConsole.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
         panelConsole.setLayout(gbl_panelConsole);
+        scrollPane.setAutoscrolls(true);
 
-        JScrollPane scrollPane = new JScrollPane();
         scrollPane
                 .setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setPreferredSize(new Dimension(100, 50));
@@ -125,9 +130,44 @@ public class MonitorPanel extends JPanel {
         gbc_scrollPane.gridx = 0;
         gbc_scrollPane.gridy = 0;
         panelConsole.add(scrollPane, gbc_scrollPane);
+        textPaneConsole.setAlignmentY(Component.BOTTOM_ALIGNMENT);
 
         textPaneConsole.setEditable(false);
         scrollPane.setViewportView(textPaneConsole);
+
+        Thread consoleWriter = new Thread(new ConsoleWriter(this));
+        consoleWriter.start();
+
+    }
+}
+
+class ConsoleWriter implements Runnable {
+
+    private MonitorPanel panelMonitor;
+
+    ConsoleWriter(MonitorPanel panelMonitor) {
+        this.panelMonitor = panelMonitor;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                if (AppenderLog4j.APPENDER != null) {
+                    synchronized (AppenderLog4j.APPENDER) {
+                        StringBuffer buffer = AppenderLog4j.APPENDER
+                                .getBuffer();
+                        if (buffer.length() > 0) {
+                            panelMonitor.appendToConsole(buffer.toString());
+                            buffer.setLength(0);
+                        }
+
+                    }
+                }
+                Thread.sleep(1000);
+            }
+        } catch (InterruptedException e) {
+        }
 
     }
 }
