@@ -112,16 +112,16 @@ public class Window {
         gbl_panelConfiguration.rowWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
         panelConfiguration.setLayout(gbl_panelConfiguration);
         
-        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        GridBagConstraints gbc_tabbedPane = new GridBagConstraints();
-        gbc_tabbedPane.fill = GridBagConstraints.BOTH;
-        gbc_tabbedPane.insets = new Insets(0, 0, 5, 0);
-        gbc_tabbedPane.gridx = 0;
-        gbc_tabbedPane.gridy = 0;
-        panelConfiguration.add(tabbedPane, gbc_tabbedPane);
+        JTabbedPane tabbedPaneConfiguration = new JTabbedPane(JTabbedPane.TOP);
+        GridBagConstraints gbc_tabbedPaneConfiguration = new GridBagConstraints();
+        gbc_tabbedPaneConfiguration.fill = GridBagConstraints.BOTH;
+        gbc_tabbedPaneConfiguration.insets = new Insets(0, 0, 5, 0);
+        gbc_tabbedPaneConfiguration.gridx = 0;
+        gbc_tabbedPaneConfiguration.gridy = 0;
+        panelConfiguration.add(tabbedPaneConfiguration, gbc_tabbedPaneConfiguration);
         
         JScrollPane scrollPaneConfiguration = new JScrollPane();
-        tabbedPane.addTab("Server settings", null, scrollPaneConfiguration, null);
+        tabbedPaneConfiguration.addTab("Server settings", null, scrollPaneConfiguration, null);
         
         tableConfiguration = new JTable();
         scrollPaneConfiguration.setPreferredSize(new Dimension(400, 100));
@@ -152,7 +152,7 @@ public class Window {
         tableConfiguration.getColumnModel().getColumn(1).setPreferredWidth(108);
         
         JScrollPane scrollPane_1 = new JScrollPane();
-        tabbedPane.addTab("SSH settings", null, scrollPane_1, null);
+        tabbedPaneConfiguration.addTab("SSH settings", null, scrollPane_1, null);
         scrollPane_1.setPreferredSize(new Dimension(300, 100));
         
         table = new JTable();
@@ -197,7 +197,7 @@ public class Window {
         });
         
         final MonitorPanel panelMonitor = new MonitorPanel();
-       frame.getContentPane().add(panelMonitor);
+       frame.getContentPane().add(panelMonitor, panelMonitor.getConstraints());
         
         ControlPanel panelControl = new ControlPanel();
         panelControl.setMonitorPanel(panelMonitor);
