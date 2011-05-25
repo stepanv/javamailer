@@ -42,9 +42,15 @@ public class ControlPanel extends JPanel {
     private JButton btnStop = new JButton("Stop");
 
     private MonitorPanel monitorPanel;
+    private ConfigurationPanel configurationPanel;
 
     public void setMonitorPanel(MonitorPanel monitorPanel) {
         this.monitorPanel = monitorPanel;
+    }
+    
+
+    public void setConfigurationPanel(ConfigurationPanel configurationPanel) {
+        this.configurationPanel = configurationPanel;
     }
 
     private void create() {
@@ -88,6 +94,10 @@ public class ControlPanel extends JPanel {
 
         btnStart.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                
+                if (reloadConfiguration) {
+                    configurationPanel.flushProperties();
+                }
                 monitorPanel.getLblCurrentState().setText("running");
                 monitorPanel.getLblCurrentState().setForeground(Color.GREEN);
                 btnStart.setEnabled(false);
@@ -98,7 +108,14 @@ public class ControlPanel extends JPanel {
             }
         });
     }
+    
+    private boolean reloadConfiguration = false;
+    
+    public void scheduleConfigurationReload() {
+        reloadConfiguration = true;
+    }
 
     Mailer mailer = new Mailer();
+
     
 }

@@ -51,6 +51,7 @@ public class Window {
     private static void createAndShowGUI() {
         // Create and set up the window.
         JFrame frame = new JFrame("JavaMailer Proxy");
+        frame.setPreferredSize(new Dimension(500, 600));
         frame.setMaximumSize(new Dimension(2147483647, 600));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
@@ -86,11 +87,14 @@ public class Window {
 
         ControlPanel panelControl = new ControlPanel();
         panelControl.setMonitorPanel(panelMonitor);
+        panelControl.setConfigurationPanel(panelConfig);
         GridBagConstraints gbc_panelControl = new GridBagConstraints();
         gbc_panelControl.fill = GridBagConstraints.BOTH;
         gbc_panelControl.gridx = 0;
         gbc_panelControl.gridy = 3;
         frame.getContentPane().add(panelControl, gbc_panelControl);
+        
+        panelConfig.setControlPanel(panelControl);
 
         // Display the window.
         frame.pack();

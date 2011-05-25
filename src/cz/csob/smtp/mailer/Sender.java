@@ -172,11 +172,11 @@ class Sender extends Thread implements Runnable, Notifier {
 			 * fail with java.io.InterruptedIOException, at which point we will
 			 * abandon the connection.
 			 */
-			socketToAClient.setSoTimeout(Configuration.timeout);
+			socketToAClient.setSoTimeout(Configuration.getTimeout());
 			socketToAClient.setTcpNoDelay(true);
 
 			SocketAddress sa = socketToAClient.getRemoteSocketAddress();
-			if (!Configuration.serverSecurityClientPattern.matcher(
+			if (!Configuration.getServerSecurityClientPattern().matcher(
 					sa.toString()).matches()) {
 				logger.info("Denying access for a client ip: " + sa);
 				ps.print("550 " + " Will not communicate... ");
@@ -208,7 +208,7 @@ class Sender extends Thread implements Runnable, Notifier {
 					ssh.stdinWrite(Mailer.EOL);
 					return;
 				} else if (HELLO_PATT.matcher(line).matches()) {
-					line = "HELO " + Configuration.sshSmtpServerPretended;
+					line = "HELO " + Configuration.getSshSmtpServerPretended();
 				}
 				logger.debug("Sending to ssh: " + line);
 				ssh.stdinWrite(line + "\n");

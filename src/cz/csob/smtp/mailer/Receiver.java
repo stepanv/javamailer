@@ -38,10 +38,10 @@ public class Receiver extends Thread implements Runnable {
 		this.output = outputToWrite;
 		this.notifyObject = notifyObject;
 		this.pipedProcess = new PipedProcess(String.format(
-				"%s %s %s@%s \"telnet %s %s\"", Configuration.sshProgram,
-				Configuration.sshAddparams, Configuration.sshUser,
-				Configuration.sshHost, Configuration.sshSmtpHost,
-				Configuration.sshSmtpPort));
+				"%s %s %s@%s \"telnet %s %s\"", Configuration.getSshProgram(),
+				Configuration.getSshAddparams(), Configuration.getSshUser(),
+				Configuration.getSshHost(), Configuration.getSshSmtpHost(),
+				Configuration.getSshSmtpPort()));
 	}
 
 	/**

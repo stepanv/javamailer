@@ -39,7 +39,7 @@ public class Mailer {
      */
     public static boolean conditionallyAddWorkerToTheIdlePool(Sender worker) {
         synchronized (workersIdlePool) {
-            if (workersIdlePool.size() >= Configuration.workers) {
+            if (workersIdlePool.size() >= Configuration.getWorkers()) {
                 /* too many threads, exit this one */
                 return false;
             } else {
@@ -67,9 +67,9 @@ public class Mailer {
     }
 
     static void printProps() {
-        logger.info("timeout= " + Configuration.timeout);
-        logger.info("workers= " + Configuration.workers);
-        logger.info("port= " + Configuration.port);
+        logger.info("timeout= " + Configuration.getTimeout());
+        logger.info("workers= " + Configuration.getWorkers());
+        logger.info("port= " + Configuration.getPort());
     }
 
     private boolean inShutdownHook = false;
@@ -128,7 +128,7 @@ public class Mailer {
                 + Configuration.currentConfiguration());
 
         /* start worker threads */
-        for (int i = 0; i < Configuration.workers; ++i) {
+        for (int i = 0; i < Configuration.getWorkers(); ++i) {
             Sender w = new Sender();
             w.start();
             logger.info("worker thread " + w.getId() + " started");
@@ -138,8 +138,8 @@ public class Mailer {
         try {
 
             /* create a socket on a specified port */
-            logger.debug("creating socket at port: " + Configuration.port);
-            serverSocket = new ServerSocket(Configuration.port);
+            logger.debug("creating socket at port: " + Configuration.getPort());
+            serverSocket = new ServerSocket(Configuration.getPort());
 
             /* main program loop */
             while (true) {
@@ -162,11 +162,11 @@ public class Mailer {
                         }
                     }
                 } catch (IOException e) {
-                    logger.info("Listening on port " + Configuration.port + " was forcefully ended.");
+                    logger.info("Listening on port " + Configuration.getPort() + " was forcefully ended.");
                 }
             }
         } catch (IOException e) {
-            logger.error("Cannot open socket at port: " + Configuration.port);
+            logger.error("Cannot open socket at port: " + Configuration.getPort());
         }
         logger.debug("Mailer main thread ending");
     }
@@ -179,17 +179,6 @@ public class Mailer {
      * @throws Exception
      */
     public static void main(String[] args) {
-
-        if (args.length > 0) {
-            int port;
-            try {
-                port = Integer.parseInt(args[0]);
-                Configuration.port = port;
-            } catch (NumberFormatException e) {
-                logger.error("Program port argument '" + args[0]
-                        + "' not an integer");
-            }
-        }
 
         new Mailer().start();
 
