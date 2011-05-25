@@ -1,4 +1,4 @@
-package cz.csob.smtp.mailer.gui;
+package net.uvavru.smtp.mailer.gui;
 
 /*
  * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.

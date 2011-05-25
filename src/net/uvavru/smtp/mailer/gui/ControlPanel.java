@@ -1,4 +1,4 @@
-package cz.csob.smtp.mailer.gui;
+package net.uvavru.smtp.mailer.gui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,7 +14,8 @@ import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
-import cz.csob.smtp.mailer.Mailer;
+import net.uvavru.smtp.mailer.Mailer;
+
 
 public class ControlPanel extends JPanel {
 

@@ -1,4 +1,4 @@
-package cz.csob.smtp.mailer;
+package net.uvavru.smtp.mailer;
 
 import java.io.IOException;
 import java.io.OutputStream;

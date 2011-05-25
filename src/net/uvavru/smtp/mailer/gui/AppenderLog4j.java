@@ -1,4 +1,4 @@
-package cz.csob.smtp.mailer.gui;
+package net.uvavru.smtp.mailer.gui;
 
 import javax.swing.SwingUtilities;
 

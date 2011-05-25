@@ -1,4 +1,4 @@
-package cz.csob.smtp.mailer;
+package net.uvavru.smtp.mailer;
 
 /* An example of a very simple, multi-threaded HTTP server.
  * Implementation notes are in WebServer.html, and also

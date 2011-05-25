@@ -1,4 +1,4 @@
-package cz.csob.smtp.mailer.gui;
+package net.uvavru.smtp.mailer.gui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -17,10 +17,11 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
+import net.uvavru.smtp.mailer.Configuration;
+
 import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 
-import cz.csob.smtp.mailer.Configuration;
 
 public class ConfigurationPanel extends JPanel {
 
@@ -79,21 +80,21 @@ public class ConfigurationPanel extends JPanel {
     public ConfigurationPanel() {
         super();
 
-        propertyServerToNameMapping.put("server.threads", "Thread count");
-        propertyServerToNameMapping.put("server.timeout",
+        propertyServerToNameMapping.put(Configuration.SERVER_THREADS, "Thread count");
+        propertyServerToNameMapping.put(Configuration.SERVER_TIMEOUT,
                 "Connection max duration");
-        propertyServerToNameMapping.put("server.port", "Listening port");
-        propertyServerToNameMapping.put("server.securityClientPattern",
+        propertyServerToNameMapping.put(Configuration.SERVER_PORT, "Listening port");
+        propertyServerToNameMapping.put(Configuration.SERVER_SECURITYCLIENTPATTERN,
                 "Reg exp pattern for clinents IPs");
 
-        propertySSHToNameMapping.put("ssh.user", "User");
-        propertySSHToNameMapping.put("ssh.host", "Host");
-        propertySSHToNameMapping.put("ssh.program", "SSH executable");
-        propertySSHToNameMapping.put("ssh.addparams", "Additional parameters");
+        propertySSHToNameMapping.put(Configuration.SSH_USER, "User");
+        propertySSHToNameMapping.put(Configuration.SSH_HOST, "Host");
+        propertySSHToNameMapping.put(Configuration.SSH_EXECUTABLE, "SSH executable");
+        propertySSHToNameMapping.put(Configuration.SSH_ADDPARAMS, "Additional parameters");
 
-        propertySMTPToNameMapping.put("ssh.smtp.host", "SMTP to connect to");
-        propertySMTPToNameMapping.put("ssh.smtp.port", "SMTP listening port");
-        propertySMTPToNameMapping.put("ssh.smtp.serverpretended",
+        propertySMTPToNameMapping.put(Configuration.SSH_SMTP_HOST, "SMTP to connect to");
+        propertySMTPToNameMapping.put(Configuration.SSH_SMTP_PORT, "SMTP listening port");
+        propertySMTPToNameMapping.put(Configuration.SSH_SMTP_SERVERPRETENDED,
                 "Server SMTP HELO pretended");
 
         fillTableModel(serverTableModel, propertyServerToNameMapping);

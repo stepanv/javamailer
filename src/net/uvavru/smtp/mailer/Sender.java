@@ -1,4 +1,4 @@
-package cz.csob.smtp.mailer;
+package net.uvavru.smtp.mailer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -10,9 +10,10 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.regex.Pattern;
 
+import net.uvavru.smtp.mailer.Receiver.Notifier;
+
 import org.apache.log4j.Logger;
 
-import cz.csob.smtp.mailer.Receiver.Notifier;
 
 class Sender extends Thread implements Runnable, Notifier {
 	private final static int BUF_SIZE = 2048;
