@@ -22,8 +22,6 @@ public class Mailer {
 
     private static Logger logger = Logger.getLogger(Mailer.class.getName());
 
-    static PrintStream log = null;
-
     /**
      * Where senders threads stand idle
      */
@@ -66,6 +64,18 @@ public class Mailer {
         }
     }
 
+    public static int getSenderRunningCount() {
+        synchronized (sendersRunning) {
+            return sendersRunning.size();
+        }
+    }
+
+    public static int getSenderIdlePoolCount() {
+        synchronized (sendersIdlePool) {
+            return sendersIdlePool.size();
+        }
+    }
+
     static void printProps() {
         logger.info("timeout= " + Configuration.getTimeout());
         logger.info("senders= " + Configuration.getSenders());
@@ -78,19 +88,12 @@ public class Mailer {
         // Add the shutdown hook as new java thread to the runtime.
         // can be added as inner class or a separate class that implements
         // Runnable or extends Thread
+        
+        final Mailer self = this;
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 logger.debug("in : run () : shutdownHook");
-
-                inShutdownHook = true;
-                synchronized (sendersRunning) {
-                    for (int i = 0; i < sendersRunning.size(); ++i) {
-                        Sender sender = sendersRunning.elementAt(i);
-                        logger.info("Sender " + sender.getId() + "stopping...");
-                        sender.stopFast();
-                    }
-                }
-
+                self.stopAsync();
                 logger.debug("Shutdown hook completed...");
             }
         });
@@ -98,26 +101,47 @@ public class Mailer {
 
     public void stopAsync() {
         inShutdownHook = true;
+
         try {
-            serverSocket.close();
+            if (serverSocket != null) {
+                serverSocket.close();
+            }
         } catch (IOException e) {
             logger.debug(e);
         }
-        for (Sender sender : sendersIdlePool) {
-            sender.stopFast();
+
+        synchronized (sendersRunning) {
+            for (int i = 0; i < sendersRunning.size(); ++i) {
+                Sender sender = sendersRunning.elementAt(i);
+                logger.info("Sender " + sender.getId() + "stopping... (total: " + sendersRunning.size() + ")");
+                sender.stopFast();
+            }
+        }
+
+        synchronized (sendersIdlePool) {
+            for (Sender sender : sendersIdlePool) {
+                sender.stopFast();
+            }
+            sendersIdlePool.clear();
         }
     }
+    
+    private static Thread mailerThread;
 
     public void startAsync() {
         inShutdownHook = false;
         final Mailer mailer = this;
-        Thread mailerThread = new Thread(new Runnable() {
-            
+        mailerThread = new Thread(new Runnable() {
+
             public void run() {
                 mailer.start();
             }
         }, "MailerMain");
         mailerThread.start();
+    }
+    
+    public static boolean isRunning() {
+        return mailerThread != null && mailerThread.isAlive();
     }
 
     ServerSocket serverSocket;
@@ -163,11 +187,15 @@ public class Mailer {
                         }
                     }
                 } catch (IOException e) {
-                    logger.info("Listening on port " + Configuration.getPort() + " was forcefully ended.");
+                    logger.info("Listening on port " + Configuration.getPort()
+                            + " was forcefully ended.");
                 }
             }
         } catch (IOException e) {
-            logger.error("Cannot open socket at port: " + Configuration.getPort());
+            logger.error("Cannot open socket at port: "
+                    + Configuration.getPort());
+        } finally {
+            stopAsync();
         }
         logger.debug("Mailer main thread ending");
     }

@@ -49,9 +49,9 @@ class Sender extends Thread implements Runnable, Notifier {
 
 	private void stopHook() {
 		logger.debug("running stop hook");
-		// TODO rewrite this weird thing
+		// TOsDO rewrite this weird thing
 		try {
-			// synchronized (ssh) { TODO do somwthing with this...
+			// synchronized (ssh) { TsODO do somwthing with this...
 		    
 			ssh.stdinWrite("QUIT\n");
 			// }

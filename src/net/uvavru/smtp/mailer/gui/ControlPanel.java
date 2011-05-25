@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
@@ -47,6 +48,10 @@ public class ControlPanel extends JPanel {
 
     public void setMonitorPanel(MonitorPanel monitorPanel) {
         this.monitorPanel = monitorPanel;
+        
+        monitorUpdateTimer = new Timer(1000, new MonitorPanel.MonitorUpdater(monitorPanel, this));
+        
+        monitorUpdateTimer.start();
     }
     
 
@@ -84,31 +89,35 @@ public class ControlPanel extends JPanel {
         btnStop.setEnabled(false);
         btnStop.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                monitorPanel.getLblCurrentState().setText("stopped");
-                monitorPanel.getLblCurrentState().setForeground(Color.RED);
-                btnStart.setEnabled(true);
-                btnStop.setEnabled(false);
-                
-                mailer.stopAsync();
+               mailer.stopAsync();
+               mailerStopped();
             }
         });
 
         btnStart.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                
                 if (reloadConfiguration) {
                     configurationPanel.flushProperties();
                     reloadConfiguration = false;
                 }
-                monitorPanel.getLblCurrentState().setText("running");
-                monitorPanel.getLblCurrentState().setForeground(Color.GREEN);
-                btnStart.setEnabled(false);
-                btnStop.setEnabled(true);
-                
                 mailer.startAsync();
-
+                mailerStarted();
             }
         });
+    }
+    
+    public void mailerStopped() {
+        monitorPanel.getLblCurrentState().setText("stopped");
+        monitorPanel.getLblCurrentState().setForeground(Color.RED);
+        btnStart.setEnabled(true);
+        btnStop.setEnabled(false);
+    }
+    
+    public void mailerStarted() {
+        monitorPanel.getLblCurrentState().setText("running");
+        monitorPanel.getLblCurrentState().setForeground(Color.GREEN);
+        btnStart.setEnabled(false);
+        btnStop.setEnabled(true);
     }
     
     private boolean reloadConfiguration = false;
@@ -118,6 +127,7 @@ public class ControlPanel extends JPanel {
     }
 
     Mailer mailer = new Mailer();
-
+    
+    Timer monitorUpdateTimer;
     
 }
