@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,17 +39,20 @@ public class MonitorPanel extends JPanel {
     }
 
     public synchronized void appendToConsole(String text) {
+        Rectangle rect = textPane.getVisibleRect();
         //textPaneConsole.setText(textPaneConsole.getText() + text + "\n");
-        textPaneConsole.setText(textPaneConsole.getText() + "aaa" + "\n");
+        textPane.setText(textPane.getText() + "aaa" + "\n");
         //scrollPane.doLayout();
         //textPaneConsole.doLayout();
         this.repaint();
+        scrollPane.scrollRectToVisible(rect);
+        textPane.repaint();
+        scrollPane.repaint();
     }
 
-    final JTextPane textPaneConsole = new JTextPane();
-    JScrollPane scrollPane = new JScrollPane();
-
+    JTextPane textPane = new JTextPane();
     JTabbedPane tabbedPaneMonitor = new JTabbedPane(JTabbedPane.TOP);
+    JScrollPane scrollPane = new JScrollPane();
 
     private void create() {
 
@@ -120,20 +124,17 @@ public class MonitorPanel extends JPanel {
         gbl_panelConsole.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
         gbl_panelConsole.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
         panelConsole.setLayout(gbl_panelConsole);
-        scrollPane.setAutoscrolls(true);
-
-        scrollPane
-                .setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setPreferredSize(new Dimension(100, 50));
+        
+        
         GridBagConstraints gbc_scrollPane = new GridBagConstraints();
         gbc_scrollPane.fill = GridBagConstraints.BOTH;
         gbc_scrollPane.gridx = 0;
         gbc_scrollPane.gridy = 0;
         panelConsole.add(scrollPane, gbc_scrollPane);
-        textPaneConsole.setAlignmentY(Component.BOTTOM_ALIGNMENT);
-
-        textPaneConsole.setEditable(false);
-        scrollPane.setViewportView(textPaneConsole);
+        scrollPane.setViewportView(textPane);
+        
+        
+        textPane.setAlignmentX(Component.RIGHT_ALIGNMENT);
 
         Thread consoleWriter = new Thread(new ConsoleWriter(this));
         consoleWriter.start();
