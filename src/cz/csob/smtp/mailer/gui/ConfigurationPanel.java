@@ -1,11 +1,12 @@
 package cz.csob.smtp.mailer.gui;
 
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Hashtable;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -15,29 +16,85 @@ import javax.swing.JTable;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
+import cz.csob.smtp.mailer.Configuration;
+
 public class ConfigurationPanel extends JPanel {
 
+    class ConfigTableModel extends DefaultTableModel {
+        public ConfigTableModel() {
+            super(new String[] {"name", "value"}, 0);
+        }
+        /**
+         * 
+         */
+        private static final long serialVersionUID = -7635061872854903936L;
+        boolean[] columnEditables = new boolean[] {
+            false, true
+        };
+        public boolean isCellEditable(int row, int column) {
+            return columnEditables[column];
+        }
+    }
 
+    DefaultTableModel serverTableModel = new ConfigTableModel();
+    DefaultTableModel sshTableModel = new ConfigTableModel();
+    DefaultTableModel smtpTableModel = new ConfigTableModel();
+    
+    private void fillTableModel(DefaultTableModel tableModel, Hashtable<String, String> propertyMapping) {
+        for (String key : Configuration.props.keySet()) {
+            if (propertyMapping.containsKey(key.toString())) {
+                Vector<String> row = new Vector<String>();
+                row.add(propertyMapping.get(key.toString()));
+                row.add(Configuration.props.getString(key));
+                tableModel.addRow(row);
+            }
+        }
+    }
+    
     public ConfigurationPanel() {
         super();
+        
+        propertyServerToNameMapping.put("server.workers", "Thread count");
+        propertyServerToNameMapping.put("server.timeout", "Connection max duration");
+        propertyServerToNameMapping.put("server.port", "Listening port");
+        propertyServerToNameMapping.put("server.securityClientPattern", "Reg exp pattern for clinents IPs");
+        
+        propertySSHToNameMapping.put("ssh.user", "User");
+        propertySSHToNameMapping.put("ssh.host", "Host");
+        propertySSHToNameMapping.put("ssh.program", "SSH executable");
+        propertySSHToNameMapping.put("ssh.addparams", "Additional parameters");
+        
+        propertySMTPToNameMapping.put("ssh.smtp.host", "SMTP to connect to");
+        propertySMTPToNameMapping.put("ssh.smtp.port", "SMTP listening port");
+        propertySMTPToNameMapping.put("ssh.smtp.serverpretended", "Server SMTP HELO pretended");
+        
+        fillTableModel(serverTableModel, propertyServerToNameMapping);
+        fillTableModel(sshTableModel, propertySSHToNameMapping);
+        fillTableModel(smtpTableModel, propertySMTPToNameMapping);
+        
         create();
     }
+    
+    Hashtable<String, String> propertyServerToNameMapping = new Hashtable<String, String>();
+    Hashtable<String, String> propertySSHToNameMapping = new Hashtable<String, String>();
+    Hashtable<String, String> propertySMTPToNameMapping = new Hashtable<String, String>();
 
     /**
      * 
      */
     private static final long serialVersionUID = 8856476596567368653L;
-    private JTable tableConfiguration;
-    private JTable table;
+    private JTable tableServerConfig;
+    private JTable tableSSHConfig;
+    private JTable tableSMTPConfig;
 
     private void create() {
         this.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEADING, TitledBorder.TOP, null, null));
         
         GridBagLayout gbl_panelConfiguration = new GridBagLayout();
         gbl_panelConfiguration.columnWidths = new int[]{305, 0};
-        gbl_panelConfiguration.rowHeights = new int[]{128, 0, 0};
+        gbl_panelConfiguration.rowHeights = new int[]{156, 0, 0};
         gbl_panelConfiguration.columnWeights = new double[]{1.0, Double.MIN_VALUE};
-        gbl_panelConfiguration.rowWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+        gbl_panelConfiguration.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
         this.setLayout(gbl_panelConfiguration);
         
         JTabbedPane tabbedPaneConfiguration = new JTabbedPane(JTabbedPane.TOP);
@@ -48,71 +105,32 @@ public class ConfigurationPanel extends JPanel {
         gbc_tabbedPaneConfiguration.gridy = 0;
         this.add(tabbedPaneConfiguration, gbc_tabbedPaneConfiguration);
         
-        JScrollPane scrollPaneConfiguration = new JScrollPane();
-        tabbedPaneConfiguration.addTab("Server settings", null, scrollPaneConfiguration, null);
+        JScrollPane scrollPaneServerConfig = new JScrollPane();
+        tabbedPaneConfiguration.addTab("Server settings", null, scrollPaneServerConfig, null);
         
-        tableConfiguration = new JTable();
-        scrollPaneConfiguration.setPreferredSize(new Dimension(400, 100));
-        scrollPaneConfiguration.setViewportView(tableConfiguration);
-        tableConfiguration.setModel(new DefaultTableModel(
-            new Object[][] {
-                {"SMTP server", null},
-                {"workers count", null},
-                {"listening port", null},
-                {"allowed clients pattern", null},
-            },
-            new String[] {
-                "name", "value"
-            }
-        ) {
-            /**
-             * 
-             */
-            private static final long serialVersionUID = -1360372932556984063L;
-            boolean[] columnEditables = new boolean[] {
-                false, true
-            };
-            public boolean isCellEditable(int row, int column) {
-                return columnEditables[column];
-            }
-        });
-        tableConfiguration.getColumnModel().getColumn(0).setPreferredWidth(120);
-        tableConfiguration.getColumnModel().getColumn(1).setPreferredWidth(108);
+        tableServerConfig = new JTable();
+        scrollPaneServerConfig.setViewportView(tableServerConfig);
         
-        JScrollPane scrollPane_1 = new JScrollPane();
-        tabbedPaneConfiguration.addTab("SSH settings", null, scrollPane_1, null);
-        scrollPane_1.setPreferredSize(new Dimension(300, 100));
         
-        table = new JTable();
-        scrollPane_1.setViewportView(table);
-        table.setModel(new DefaultTableModel(
-            new Object[][] {
-                {"executable", null},
-                {"parameters", null},
-                {"additional parameters", null},
-                {"user", null},
-                {"password", null},
-                {"SMTP host", null},
-                {"SMTP port", null},
-                {"SMTP server pretended", null},
-            },
-            new String[] {
-                "name", "value"
-            }
-        ) {
-            /**
-             * 
-             */
-            private static final long serialVersionUID = -8143789044797499788L;
-            boolean[] columnEditables = new boolean[] {
-                false, true
-            };
-            public boolean isCellEditable(int row, int column) {
-                return columnEditables[column];
-            }
-        });
-        table.getColumnModel().getColumn(0).setPreferredWidth(124);
-        table.getColumnModel().getColumn(1).setPreferredWidth(340);
+        tableServerConfig.setModel(serverTableModel);
+        tableServerConfig.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tableServerConfig.getColumnModel().getColumn(1).setPreferredWidth(108);
+        
+        JScrollPane scrollPaneSSHConfig = new JScrollPane();
+        tabbedPaneConfiguration.addTab("SSH settings", null, scrollPaneSSHConfig, null);
+        
+        tableSSHConfig = new JTable();
+        scrollPaneSSHConfig.setViewportView(tableSSHConfig);
+        tableSSHConfig.setModel(sshTableModel);
+        tableSSHConfig.getColumnModel().getColumn(0).setPreferredWidth(124);
+        tableSSHConfig.getColumnModel().getColumn(1).setPreferredWidth(340);
+        
+        JScrollPane scrollPaneSMTPConfig = new JScrollPane();
+        tabbedPaneConfiguration.addTab("SMTP setting", null, scrollPaneSMTPConfig, null);
+        
+        tableSMTPConfig = new JTable();
+        tableSMTPConfig.setModel(smtpTableModel);
+        scrollPaneSMTPConfig.setViewportView(tableSMTPConfig);
         
         JButton btnSave = new JButton("Save");
         GridBagConstraints gbc_btnSave = new GridBagConstraints();

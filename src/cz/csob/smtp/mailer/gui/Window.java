@@ -40,6 +40,7 @@ import java.awt.Insets;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import java.awt.Dimension;
 
 public class Window {
 
@@ -50,12 +51,13 @@ public class Window {
     private static void createAndShowGUI() {
         // Create and set up the window.
         JFrame frame = new JFrame("JavaMailer Proxy");
+        frame.setMaximumSize(new Dimension(2147483647, 600));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
         gridBagLayout.columnWidths = new int[] { 170, 0 };
-        gridBagLayout.rowHeights = new int[] { 21, 0, 169, 48, 0 };
+        gridBagLayout.rowHeights = new int[] { 21, 128, 128, 48, 0 };
         gridBagLayout.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-        gridBagLayout.rowWeights = new double[] { 0.0, 1.0, 1.0, 0.0,
+        gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 0.0,
                 Double.MIN_VALUE };
         frame.getContentPane().setLayout(gridBagLayout);
 
@@ -66,15 +68,14 @@ public class Window {
         gbc_panelImage.gridy = 0;
         frame.getContentPane().add(panelImage, gbc_panelImage);
 
-        ConfigurationPanel panelConfiguration = new ConfigurationPanel();
-        GridBagConstraints gbc_panelConfiguration = new GridBagConstraints();
-        gbc_panelConfiguration.insets = new Insets(0, 0, 5, 0);
-        gbc_panelConfiguration.fill = GridBagConstraints.BOTH;
-        gbc_panelConfiguration.gridx = 0;
-        gbc_panelConfiguration.gridy = 1;
-        frame.getContentPane().add(panelConfiguration,
-                gbc_panelConfiguration);
-
+        ConfigurationPanel panelConfig = new ConfigurationPanel();
+        GridBagConstraints gbc_panelConfig = new GridBagConstraints();
+        gbc_panelConfig.fill = GridBagConstraints.BOTH;
+        gbc_panelConfig.insets = new Insets(0, 0, 5, 0);
+        gbc_panelConfig.gridx = 0;
+        gbc_panelConfig.gridy = 1;
+        frame.getContentPane().add(panelConfig, gbc_panelConfig);
+        
         MonitorPanel panelMonitor = new MonitorPanel();
         GridBagConstraints gbc_panelMonitor = new GridBagConstraints();
         gbc_panelMonitor.fill = GridBagConstraints.BOTH;
