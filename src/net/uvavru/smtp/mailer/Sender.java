@@ -31,15 +31,19 @@ class Sender extends Thread implements Runnable, Notifier {
 
 	private BufferedReader clientInput;
 
-	Sender(Socket socketToAClient) {
+    private Mailer mailer;
+
+	private static long senderIdGenerator = 0;
+	
+	Sender(Socket socketToAClient, Mailer mailer) {
 	    super("Sender-" + senderIdGenerator++);
 		this.socketToAClient = socketToAClient;
+		this.mailer = mailer;
 	}
-	
-	private static long senderIdGenerator = 0;
 
-	public Sender() {
+	Sender(Mailer mailer) {
 	    super("Sender-" + senderIdGenerator++);
+	    this.mailer = mailer;
 	}
 
 	synchronized void setSocketToAClient(Socket socketToAClient) {
@@ -103,7 +107,7 @@ class Sender extends Thread implements Runnable, Notifier {
 	 */
 	public synchronized void run() {
 		try {
-			Mailer.addRunningSender(this);
+			mailer.addRunningSender(this);
 			while (running) {
 				/*
 				 * Waiting for a socket to a client. Socket is set by main
@@ -125,7 +129,7 @@ class Sender extends Thread implements Runnable, Notifier {
 				 * connections.
 				 */
 				socketToAClient = null;
-				if (!Mailer.conditionallyAddSenderToTheIdlePool(this)) {
+				if (!mailer.conditionallyAddSenderToTheIdlePool(this)) {
 					running = false;
 				}
 
@@ -136,7 +140,7 @@ class Sender extends Thread implements Runnable, Notifier {
 			logger.debug("received interrupt");
 		} finally {
 			stopHook();
-			Mailer.removeRunningSender(this);
+			mailer.removeRunningSender(this);
 			logger.debug("Sender thread removed from running ones.");
 		}
 	}

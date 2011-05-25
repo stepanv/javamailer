@@ -17,7 +17,6 @@ import javax.swing.border.TitledBorder;
 
 import net.uvavru.smtp.mailer.Mailer;
 
-
 public class ControlPanel extends JPanel {
 
     /**
@@ -48,12 +47,12 @@ public class ControlPanel extends JPanel {
 
     public void setMonitorPanel(MonitorPanel monitorPanel) {
         this.monitorPanel = monitorPanel;
-        
-        monitorUpdateTimer = new Timer(1000, new MonitorPanel.MonitorUpdater(monitorPanel, this));
-        
+
+        monitorUpdateTimer = new Timer(1000, new MailerChangeStateDistributor(
+                monitorPanel, this));
+
         monitorUpdateTimer.start();
     }
-    
 
     public void setConfigurationPanel(ConfigurationPanel configurationPanel) {
         this.configurationPanel = configurationPanel;
@@ -89,8 +88,8 @@ public class ControlPanel extends JPanel {
         btnStop.setEnabled(false);
         btnStop.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-               mailer.stopAsync();
-               mailerStopped();
+                mailer.stopAsync();
+                mailerStopped();
             }
         });
 
@@ -105,29 +104,58 @@ public class ControlPanel extends JPanel {
             }
         });
     }
-    
+
     public void mailerStopped() {
         monitorPanel.getLblCurrentState().setText("stopped");
         monitorPanel.getLblCurrentState().setForeground(Color.RED);
         btnStart.setEnabled(true);
         btnStop.setEnabled(false);
     }
-    
+
     public void mailerStarted() {
         monitorPanel.getLblCurrentState().setText("running");
         monitorPanel.getLblCurrentState().setForeground(Color.GREEN);
         btnStart.setEnabled(false);
         btnStop.setEnabled(true);
     }
-    
+
     private boolean reloadConfiguration = false;
-    
+
     public void scheduleConfigurationReload() {
         reloadConfiguration = true;
     }
 
     Mailer mailer = new Mailer();
-    
+
     Timer monitorUpdateTimer;
-    
+
+    public void update() {
+        if (mailer.isRunning()) {
+            mailerStarted();
+        } else {
+            mailerStopped();
+        }
+    }
+}
+
+/**
+ * Class designed to update all needed components according to mailer
+ * current state.
+ * 
+ * @author stepan
+ * 
+ */
+class MailerChangeStateDistributor implements ActionListener {
+    private MonitorPanel panelMonitor;
+    private ControlPanel panelControl;
+
+    public MailerChangeStateDistributor(MonitorPanel panelMonitor, ControlPanel panelControl) {
+        this.panelMonitor = panelMonitor;
+        this.panelControl = panelControl;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        panelMonitor.update(panelControl);
+        panelControl.update();
+    }
 }

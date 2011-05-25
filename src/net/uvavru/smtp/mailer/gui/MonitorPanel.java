@@ -16,8 +16,6 @@ import javax.swing.JTextPane;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 
-import net.uvavru.smtp.mailer.Mailer;
-
 public class MonitorPanel extends JPanel {
 
     public MonitorPanel() {
@@ -151,31 +149,16 @@ public class MonitorPanel extends JPanel {
 
     private JLabel lblCurrentIdleThreads = new JLabel("0");
 
-    public void updateMonitor(ControlPanel panelControl) {
-        labelCurrentRunningThreads.setText(String.valueOf(Mailer
+    /**
+     * Update monitor's components and others too.
+     * 
+     * @param panelControl
+     */
+    public void update(ControlPanel panelControl) {
+        labelCurrentRunningThreads.setText(String.valueOf(panelControl.mailer
                 .getSenderRunningCount()));
-        lblCurrentIdleThreads.setText(String.valueOf(Mailer
+        lblCurrentIdleThreads.setText(String.valueOf(panelControl.mailer
                 .getSenderIdlePoolCount()));
-        
-        if (Mailer.isRunning()) {
-            panelControl.mailerStarted();
-        } else {
-            panelControl.mailerStopped();
-        }
-
     }
-
-    static class MonitorUpdater implements ActionListener {
-        private MonitorPanel panelMonitor;
-        private ControlPanel panelControl;
-
-        public MonitorUpdater(MonitorPanel panelMonitor, ControlPanel panelControl) {
-            this.panelMonitor = panelMonitor;
-            this.panelControl = panelControl;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            panelMonitor.updateMonitor(panelControl);
-        }
-    }
+    
 }

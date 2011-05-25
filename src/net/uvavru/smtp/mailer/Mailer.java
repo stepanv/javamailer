@@ -5,7 +5,6 @@ package net.uvavru.smtp.mailer;
  * as comments in the source code.
  */
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
@@ -25,7 +24,7 @@ public class Mailer {
     /**
      * Where senders threads stand idle
      */
-    private static Vector<Sender> sendersIdlePool = new Vector<Sender>();
+    private Vector<Sender> sendersIdlePool = new Vector<Sender>();
 
     /**
      * In case that there isn't enough idle thread in the pool add sender to the
@@ -35,7 +34,7 @@ public class Mailer {
      * @return indication whether the sender was or wasn't added to the idle
      *         pool.
      */
-    public static boolean conditionallyAddSenderToTheIdlePool(Sender sender) {
+    public boolean conditionallyAddSenderToTheIdlePool(Sender sender) {
         synchronized (sendersIdlePool) {
             if (sendersIdlePool.size() >= Configuration.getSenders()) {
                 /* too many threads, exit this one */
@@ -50,27 +49,27 @@ public class Mailer {
     /**
      * Running threads
      */
-    private static Vector<Sender> sendersRunning = new Vector<Sender>();
+    private Vector<Sender> sendersRunning = new Vector<Sender>();
 
-    public static void addRunningSender(Sender sender) {
+    public void addRunningSender(Sender sender) {
         synchronized (sendersRunning) {
             sendersRunning.add(sender);
         }
     }
 
-    public static void removeRunningSender(Sender sender) {
+    public void removeRunningSender(Sender sender) {
         synchronized (sendersRunning) {
             sendersRunning.remove(sender);
         }
     }
 
-    public static int getSenderRunningCount() {
+    public int getSenderRunningCount() {
         synchronized (sendersRunning) {
             return sendersRunning.size();
         }
     }
 
-    public static int getSenderIdlePoolCount() {
+    public int getSenderIdlePoolCount() {
         synchronized (sendersIdlePool) {
             return sendersIdlePool.size();
         }
@@ -126,7 +125,7 @@ public class Mailer {
         }
     }
     
-    private static Thread mailerThread;
+    private Thread mailerThread;
 
     public void startAsync() {
         inShutdownHook = false;
@@ -140,7 +139,7 @@ public class Mailer {
         mailerThread.start();
     }
     
-    public static boolean isRunning() {
+    public boolean isRunning() {
         return mailerThread != null && mailerThread.isAlive();
     }
 
@@ -154,7 +153,7 @@ public class Mailer {
 
         /* start sender threads */
         for (int i = 0; i < Configuration.getSenders(); ++i) {
-            Sender sender = new Sender();
+            Sender sender = new Sender(this);
             sender.start();
             logger.info("sender thread " + sender.getId() + " started");
             sendersIdlePool.addElement(sender);
@@ -177,7 +176,7 @@ public class Mailer {
                     Sender sender = null;
                     synchronized (sendersIdlePool) {
                         if (sendersIdlePool.isEmpty()) {
-                            sender = new Sender(socketToAClient);
+                            sender = new Sender(socketToAClient, this);
                             sender.start();
                             logger.info("sender " + sender.getId() + " started");
                         } else {
