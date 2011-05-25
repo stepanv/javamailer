@@ -31,11 +31,14 @@ class Sender extends Thread implements Runnable, Notifier {
 	private BufferedReader clientInput;
 
 	Sender(Socket socketToAClient) {
+	    super("Sender-" + senderIdGenerator++);
 		this.socketToAClient = socketToAClient;
 	}
+	
+	private static long senderIdGenerator = 0;
 
 	public Sender() {
-
+	    super("Sender-" + senderIdGenerator++);
 	}
 
 	synchronized void setSocketToAClient(Socket socketToAClient) {
@@ -48,6 +51,7 @@ class Sender extends Thread implements Runnable, Notifier {
 		// TODO rewrite this weird thing
 		try {
 			// synchronized (ssh) { TODO do somwthing with this...
+		    
 			ssh.stdinWrite("QUIT\n");
 			// }
 			logger.debug("sent QUIT to remote telnet instance...");
@@ -93,12 +97,12 @@ class Sender extends Thread implements Runnable, Notifier {
 	}
 
 	/**
-	 * Worker's main thread method. Worker is marked as a running thread and
+	 * Sender's main thread method. Sender is marked as a running thread and
 	 * waiting for a socket to a client. Afterwards client is handled.
 	 */
 	public synchronized void run() {
 		try {
-			Mailer.addRunningWorker(this);
+			Mailer.addRunningSender(this);
 			while (running) {
 				/*
 				 * Waiting for a socket to a client. Socket is set by main
@@ -120,19 +124,19 @@ class Sender extends Thread implements Runnable, Notifier {
 				 * connections.
 				 */
 				socketToAClient = null;
-				if (!Mailer.conditionallyAddWorkerToTheIdlePool(this)) {
+				if (!Mailer.conditionallyAddSenderToTheIdlePool(this)) {
 					running = false;
 				}
 
-				logger.debug("Worker main loop ended.");
+				logger.debug("Sender main loop ended.");
 			}
 		} catch (InterruptedException e) {
 			/* received interrupt signal */
 			logger.debug("received interrupt");
 		} finally {
 			stopHook();
-			Mailer.removeRunningWorker(this);
-			logger.debug("Worker thread removed from running ones.");
+			Mailer.removeRunningSender(this);
+			logger.debug("Sender thread removed from running ones.");
 		}
 	}
 

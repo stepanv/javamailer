@@ -97,6 +97,7 @@ public class ControlPanel extends JPanel {
                 
                 if (reloadConfiguration) {
                     configurationPanel.flushProperties();
+                    reloadConfiguration = false;
                 }
                 monitorPanel.getLblCurrentState().setText("running");
                 monitorPanel.getLblCurrentState().setForeground(Color.GREEN);

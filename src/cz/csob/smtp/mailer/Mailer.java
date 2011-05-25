@@ -25,25 +25,25 @@ public class Mailer {
     static PrintStream log = null;
 
     /**
-     * Where worker threads stand idle
+     * Where senders threads stand idle
      */
-    private static Vector<Sender> workersIdlePool = new Vector<Sender>();
+    private static Vector<Sender> sendersIdlePool = new Vector<Sender>();
 
     /**
-     * In case that there isn't enough idle thread in the pool add worker to the
+     * In case that there isn't enough idle thread in the pool add sender to the
      * pool.
      * 
-     * @param worker
-     * @return indication whether the worker was or wasn't added to the idle
+     * @param sender
+     * @return indication whether the sender was or wasn't added to the idle
      *         pool.
      */
-    public static boolean conditionallyAddWorkerToTheIdlePool(Sender worker) {
-        synchronized (workersIdlePool) {
-            if (workersIdlePool.size() >= Configuration.getWorkers()) {
+    public static boolean conditionallyAddSenderToTheIdlePool(Sender sender) {
+        synchronized (sendersIdlePool) {
+            if (sendersIdlePool.size() >= Configuration.getSenders()) {
                 /* too many threads, exit this one */
                 return false;
             } else {
-                workersIdlePool.addElement(worker);
+                sendersIdlePool.addElement(sender);
                 return true;
             }
         }
@@ -52,23 +52,23 @@ public class Mailer {
     /**
      * Running threads
      */
-    private static Vector<Sender> workersRunning = new Vector<Sender>();
+    private static Vector<Sender> sendersRunning = new Vector<Sender>();
 
-    public static void addRunningWorker(Sender worker) {
-        synchronized (workersRunning) {
-            workersRunning.add(worker);
+    public static void addRunningSender(Sender sender) {
+        synchronized (sendersRunning) {
+            sendersRunning.add(sender);
         }
     }
 
-    public static void removeRunningWorker(Sender worker) {
-        synchronized (workersRunning) {
-            workersRunning.remove(worker);
+    public static void removeRunningSender(Sender sender) {
+        synchronized (sendersRunning) {
+            sendersRunning.remove(sender);
         }
     }
 
     static void printProps() {
         logger.info("timeout= " + Configuration.getTimeout());
-        logger.info("workers= " + Configuration.getWorkers());
+        logger.info("senders= " + Configuration.getSenders());
         logger.info("port= " + Configuration.getPort());
     }
 
@@ -83,11 +83,11 @@ public class Mailer {
                 logger.debug("in : run () : shutdownHook");
 
                 inShutdownHook = true;
-                synchronized (workersRunning) {
-                    for (int i = 0; i < workersRunning.size(); ++i) {
-                        Sender worker = workersRunning.elementAt(i);
-                        logger.info("Worker " + worker.getId() + "stopping...");
-                        worker.stopFast();
+                synchronized (sendersRunning) {
+                    for (int i = 0; i < sendersRunning.size(); ++i) {
+                        Sender sender = sendersRunning.elementAt(i);
+                        logger.info("Sender " + sender.getId() + "stopping...");
+                        sender.stopFast();
                     }
                 }
 
@@ -103,7 +103,7 @@ public class Mailer {
         } catch (IOException e) {
             logger.debug(e);
         }
-        for (Sender sender : workersIdlePool) {
+        for (Sender sender : sendersIdlePool) {
             sender.stopFast();
         }
     }
@@ -112,10 +112,11 @@ public class Mailer {
         inShutdownHook = false;
         final Mailer mailer = this;
         Thread mailerThread = new Thread(new Runnable() {
+            
             public void run() {
                 mailer.start();
             }
-        });
+        }, "MailerMain");
         mailerThread.start();
     }
 
@@ -127,12 +128,12 @@ public class Mailer {
         logger.info("Configuration file contains: "
                 + Configuration.currentConfiguration());
 
-        /* start worker threads */
-        for (int i = 0; i < Configuration.getWorkers(); ++i) {
-            Sender w = new Sender();
-            w.start();
-            logger.info("worker thread " + w.getId() + " started");
-            workersIdlePool.addElement(w);
+        /* start sender threads */
+        for (int i = 0; i < Configuration.getSenders(); ++i) {
+            Sender sender = new Sender();
+            sender.start();
+            logger.info("sender thread " + sender.getId() + " started");
+            sendersIdlePool.addElement(sender);
         }
 
         try {
@@ -149,16 +150,16 @@ public class Mailer {
                 try {
                     Socket socketToAClient = serverSocket.accept();
 
-                    Sender worker = null;
-                    synchronized (workersIdlePool) {
-                        if (workersIdlePool.isEmpty()) {
-                            worker = new Sender(socketToAClient);
-                            worker.start();
-                            logger.info("worker " + worker.getId() + " started");
+                    Sender sender = null;
+                    synchronized (sendersIdlePool) {
+                        if (sendersIdlePool.isEmpty()) {
+                            sender = new Sender(socketToAClient);
+                            sender.start();
+                            logger.info("sender " + sender.getId() + " started");
                         } else {
-                            worker = workersIdlePool.elementAt(0);
-                            workersIdlePool.removeElementAt(0);
-                            worker.setSocketToAClient(socketToAClient);
+                            sender = sendersIdlePool.elementAt(0);
+                            sendersIdlePool.removeElementAt(0);
+                            sender.setSocketToAClient(socketToAClient);
                         }
                     }
                 } catch (IOException e) {

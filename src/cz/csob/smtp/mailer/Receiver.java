@@ -34,7 +34,11 @@ public class Receiver extends Thread implements Runnable {
 		public void notifyMe();
 	}
 
+	private static long receiverIdGenerator = 0;
+	
 	public Receiver(OutputStream outputToWrite, Notifier notifyObject) {
+	    super("Receiver-" + receiverIdGenerator++);
+	    
 		this.output = outputToWrite;
 		this.notifyObject = notifyObject;
 		this.pipedProcess = new PipedProcess(String.format(

@@ -1,27 +1,25 @@
 package cz.csob.smtp.mailer.gui;
 
 import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Rectangle;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextPane;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
-import java.awt.Component;
 
 public class MonitorPanel extends JPanel {
 
     public MonitorPanel() {
         super();
         create();
+        textPaneInstance = textPane;
     }
 
     /**
@@ -38,17 +36,11 @@ public class MonitorPanel extends JPanel {
         this.lblCurrentState = lblCurrentState;
     }
 
-    public synchronized void appendToConsole(String text) {
-        Rectangle rect = textPane.getVisibleRect();
-        //textPaneConsole.setText(textPaneConsole.getText() + text + "\n");
-        textPane.setText(textPane.getText() + "aaa" + "\n");
-        //scrollPane.doLayout();
-        //textPaneConsole.doLayout();
-        this.repaint();
-        scrollPane.scrollRectToVisible(rect);
-        textPane.repaint();
-        scrollPane.repaint();
+    public static void appendToConsole(String text) {
+        textPaneInstance.setText(textPaneInstance.getText() + text + "\n");
     }
+    
+    private static JTextPane textPaneInstance;
 
     JTextPane textPane = new JTextPane();
     JTabbedPane tabbedPaneMonitor = new JTabbedPane(JTabbedPane.TOP);
@@ -135,40 +127,6 @@ public class MonitorPanel extends JPanel {
         
         
         textPane.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-        Thread consoleWriter = new Thread(new ConsoleWriter(this));
-        consoleWriter.start();
-
-    }
-}
-
-class ConsoleWriter implements Runnable {
-
-    private MonitorPanel panelMonitor;
-
-    ConsoleWriter(MonitorPanel panelMonitor) {
-        this.panelMonitor = panelMonitor;
-    }
-
-    @Override
-    public void run() {
-        try {
-            while (true) {
-                if (AppenderLog4j.APPENDER != null) {
-                    synchronized (AppenderLog4j.APPENDER) {
-                        StringBuffer buffer = AppenderLog4j.APPENDER
-                                .getBuffer();
-                        if (buffer.length() > 0) {
-                            panelMonitor.appendToConsole(buffer.toString());
-                            buffer.setLength(0);
-                        }
-
-                    }
-                }
-                Thread.sleep(1000);
-            }
-        } catch (InterruptedException e) {
-        }
 
     }
 }

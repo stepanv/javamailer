@@ -34,7 +34,7 @@ public class Configuration {
 			sb.append("\n");
 			sb.append(key.toString());
 			sb.append("=");
-			sb.append(props.getString(key));
+			sb.append(System.getProperty(key.toString(), props.getString(key)));
 		}
 		
 		return sb.toString();		
@@ -54,8 +54,8 @@ public class Configuration {
         return getDynamicProperty("ssh.host", "localhost");
     }
 
-    public static int getWorkers() {
-        return Integer.parseInt(getDynamicProperty("server.workers", "5"));
+    public static int getSenders() {
+        return Integer.parseInt(getDynamicProperty("server.threads", "5"));
     }
 
     public static int getTimeout() {

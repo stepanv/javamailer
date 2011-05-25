@@ -50,7 +50,7 @@ public class MainMenu extends JMenuBar {
         JMenuItem mntmAbout = new JMenuItem("About");
         mntmAbout.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                panelMonitor.appendToConsole("help");
+                MonitorPanel.appendToConsole("help");
             }
         });
         mnHelp.add(mntmAbout);
