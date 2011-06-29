@@ -16,7 +16,15 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
 import net.uvavru.smtp.mailer.Mailer;
+import net.uvavru.smtp.mailer.MailerImpl;
 
+/**
+ * The {@code ControlPanel} class associates whole mailer GUI with the
+ * Java Mailer core (e.g. {@link Mailer} instance).
+ * 
+ * @author stepan
+ *
+ */
 public class ControlPanel extends JPanel {
 
     /**
@@ -105,14 +113,14 @@ public class ControlPanel extends JPanel {
         });
     }
 
-    public void mailerStopped() {
+    private void mailerStopped() {
         monitorPanel.getLblCurrentState().setText("stopped");
         monitorPanel.getLblCurrentState().setForeground(Color.RED);
         btnStart.setEnabled(true);
         btnStop.setEnabled(false);
     }
 
-    public void mailerStarted() {
+    private void mailerStarted() {
         monitorPanel.getLblCurrentState().setText("running");
         monitorPanel.getLblCurrentState().setForeground(Color.GREEN);
         btnStart.setEnabled(false);
@@ -121,14 +129,21 @@ public class ControlPanel extends JPanel {
 
     private boolean reloadConfiguration = false;
 
+    /**
+     * Schedules {@code ControlPanel} to reload {@link Mailer} configuration
+     * from set properties (e.g. via GUI) to next {@code Mailer} startup
+     */
     public void scheduleConfigurationReload() {
         reloadConfiguration = true;
     }
 
-    Mailer mailer = new Mailer();
+    Mailer mailer = new MailerImpl();
 
     Timer monitorUpdateTimer;
 
+    /**
+     * Fires {@code ControlPanel} update of monitored events. 
+     */
     public void update() {
         if (mailer.isRunning()) {
             mailerStarted();

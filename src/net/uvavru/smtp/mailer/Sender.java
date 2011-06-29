@@ -14,7 +14,17 @@ import net.uvavru.smtp.mailer.Receiver.Notifier;
 
 import org.apache.log4j.Logger;
 
-
+/**
+ * The {@code Sender} class handles client's requests and forwards them
+ * to the instance of {@link PipedProcess} which talks with the SMTP server
+ * on the remote side, behind the SSH tunnel.<br>
+ * {@code Sender} always allocates exactly one {@link Receiver} which forwards
+ * everything from the SMTP server back to the client. The {@code Sender} doesn't
+ * do so since such a design offers several advantages.
+ * 
+ * @author stepan
+ *
+ */
 class Sender extends Thread implements Runnable, Notifier {
 	private final static int BUF_SIZE = 2048;
 
@@ -35,17 +45,34 @@ class Sender extends Thread implements Runnable, Notifier {
 
 	private static long senderIdGenerator = 0;
 	
+	/**
+	 * Creates {@code Sender} instance.
+	 * 
+	 * @param socketToAClient Socket to a client the {@code Sender} is going to communicate with.
+	 * @param mailer {@code Mailer} instance
+	 */
 	Sender(Socket socketToAClient, Mailer mailer) {
 	    super("Sender-" + senderIdGenerator++);
 		this.socketToAClient = socketToAClient;
 		this.mailer = mailer;
 	}
 
+	/**
+	 * Creates {@code Sender} instance.
+	 * 
+	 * @param mailer {@code Mailer} instance
+	 */
 	Sender(Mailer mailer) {
 	    super("Sender-" + senderIdGenerator++);
 	    this.mailer = mailer;
 	}
 
+	/**
+	 * Sets socket the {@code Sender} and notifies {@code Sender} about it
+	 * so that it may wake up from {@link Thread#wait()} call.
+	 *  
+	 * @param socketToAClient A socket.
+	 */
 	synchronized void setSocketToAClient(Socket socketToAClient) {
 		this.socketToAClient = socketToAClient;
 		notify();
@@ -53,12 +80,8 @@ class Sender extends Thread implements Runnable, Notifier {
 
 	private void stopHook() {
 		logger.debug("running stop hook");
-		// TOsDO rewrite this weird thing
 		try {
-			// synchronized (ssh) { TsODO do somwthing with this...
-		    
 			ssh.stdinWrite("QUIT\n");
-			// }
 			logger.debug("sent QUIT to remote telnet instance...");
 		} catch (Exception e) {
 			logger.debug("sent QUIT to remote telnet instance... NOK");
@@ -92,11 +115,15 @@ class Sender extends Thread implements Runnable, Notifier {
 	/**
 	 * Stop current thread in an asynchronous safe way. This doesn't force the
 	 * thread to stop immediately.
+	 * This routine may last forever.
 	 */
 	public void stopAsync() {
 		running = false;
 	}
 
+	/**
+	 * Stops forcefully {@code Sender}
+	 */
 	public void stopFast() {
 		this.interrupt();
 	}
@@ -128,6 +155,12 @@ class Sender extends Thread implements Runnable, Notifier {
 				 * go back in wait queue if there's fewer than numHandler
 				 * connections.
 				 */
+				if (socketToAClient != null) {
+				    try {
+                        socketToAClient.close();
+                    } catch (IOException e) {
+                    }
+				}
 				socketToAClient = null;
 				if (!mailer.conditionallyAddSenderToTheIdlePool(this)) {
 					running = false;
@@ -147,6 +180,9 @@ class Sender extends Thread implements Runnable, Notifier {
 
 	private static final Pattern HELLO_PATT = Pattern.compile("[HE][EH]LO .*");
 
+	/**
+	 * Ends session with the client.
+	 */
 	public void endClientSession() {
 		try {
 			if (socketToAClient != null) {
@@ -157,6 +193,7 @@ class Sender extends Thread implements Runnable, Notifier {
 		}
 	}
 
+	@Override
 	public void notifyMe() {
 		endClientSession();
 	}

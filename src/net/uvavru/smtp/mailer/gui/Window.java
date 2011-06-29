@@ -1,22 +1,7 @@
 package net.uvavru.smtp.mailer.gui;
 
 /*
- * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *   - Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *
- *   - Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *
- *   - Neither the name of Oracle or the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ * Copyright (c) 2011, Stepan Vavra, MFF UK. All rights reserved.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -31,17 +16,44 @@ package net.uvavru.smtp.mailer.gui;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * HelloWorldSwing.java requires no other files. 
- */
+import java.awt.AWTException;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import java.awt.Dimension;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
+import org.apache.log4j.Logger;
+import javax.swing.JTextPane;
+import javax.swing.JTree;
+import javax.swing.JPopupMenu;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JMenuItem;
+import javax.swing.JRadioButtonMenuItem;
+
+/**
+ * Main Java Mailer GUI Window class.<br>
+ * Fires creating of JFrame instance and all related GUI Swing components
+ * used in Mailer app.
+ * 
+ * @author stepan
+ *
+ */
 public class Window {
 
     /**
@@ -50,24 +62,55 @@ public class Window {
      */
     private static void createAndShowGUI() {
         // Create and set up the window.
+        try {
+            UIManager.setLookAndFeel(com.sun.java.swing.plaf.windows.WindowsLookAndFeel.class.getName());
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        JFrame.setDefaultLookAndFeelDecorated(false);
         JFrame frame = new JFrame("JavaMailer Proxy");
         frame.setPreferredSize(new Dimension(500, 600));
         frame.setMaximumSize(new Dimension(2147483647, 600));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
-        gridBagLayout.columnWidths = new int[] { 170, 0 };
+        gridBagLayout.columnWidths = new int[] { 549, 0 };
         gridBagLayout.rowHeights = new int[] { 21, 128, 128, 48, 0 };
         gridBagLayout.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
         gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 0.0,
                 Double.MIN_VALUE };
         frame.getContentPane().setLayout(gridBagLayout);
+        
+        JPanel panelImageWrapper = new JPanel();
+        panelImageWrapper.setBackground(Color.BLACK);
+        GridBagConstraints gbc_panelImageWrapper = new GridBagConstraints();
+        gbc_panelImageWrapper.fill = GridBagConstraints.BOTH;
+        gbc_panelImageWrapper.insets = new Insets(0, 0, 5, 0);
+        gbc_panelImageWrapper.gridx = 0;
+        gbc_panelImageWrapper.gridy = 0;
+        frame.getContentPane().add(panelImageWrapper, gbc_panelImageWrapper);
+        GridBagLayout gbl_panelImageWrapper = new GridBagLayout();
+        gbl_panelImageWrapper.columnWidths = new int[]{0, 431, 0};
+        gbl_panelImageWrapper.rowHeights = new int[]{21, 0};
+        gbl_panelImageWrapper.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+        gbl_panelImageWrapper.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+        panelImageWrapper.setLayout(gbl_panelImageWrapper);
 
         JPanel panelImage = new ImagePanel("resources/images/tunnel.png");
         GridBagConstraints gbc_panelImage = new GridBagConstraints();
-        gbc_panelImage.insets = new Insets(0, 0, 5, 0);
-        gbc_panelImage.gridx = 0;
+        gbc_panelImage.fill = GridBagConstraints.HORIZONTAL;
+        gbc_panelImage.gridx = 1;
         gbc_panelImage.gridy = 0;
-        frame.getContentPane().add(panelImage, gbc_panelImage);
+        panelImageWrapper.add(panelImage, gbc_panelImage);
 
         ConfigurationPanel panelConfig = new ConfigurationPanel();
         GridBagConstraints gbc_panelConfig = new GridBagConstraints();
@@ -88,6 +131,7 @@ public class Window {
         ControlPanel panelControl = new ControlPanel();
         panelControl.setMonitorPanel(panelMonitor);
         panelControl.setConfigurationPanel(panelConfig);
+        
         GridBagConstraints gbc_panelControl = new GridBagConstraints();
         gbc_panelControl.fill = GridBagConstraints.BOTH;
         gbc_panelControl.gridx = 0;
@@ -101,9 +145,52 @@ public class Window {
 
         MainMenu menuBar = new MainMenu();
         menuBar.setPanelMonitor(panelMonitor);
+        menuBar.setPanelConfiguration(panelConfig);
+        menuBar.setPanelControl(panelControl);
         frame.setJMenuBar(menuBar);
 
         frame.setVisible(true);
+        Logger.getRootLogger().addAppender(new net.uvavru.smtp.mailer.gui.AppenderLog4j(panelMonitor));
+        
+        
+        TrayIcon trayIcon = null;
+        if (SystemTray.isSupported()) {
+          SystemTray tray = SystemTray.getSystemTray();
+          Image image = new ImageIcon("resources/icons/tunnel_icon.png").getImage(); 
+          ActionListener listener = new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+              System.out.println("action");
+            }
+          };
+          final JPopupMenu popupMenu = new JPopupMenu();
+          addPopup(panelControl, popupMenu);
+          
+          JRadioButtonMenuItem rdbtnmntmBar = new JRadioButtonMenuItem("bar");
+          popupMenu.add(rdbtnmntmBar);
+          
+          JMenuItem mntmFoo = new JMenuItem("foo");
+          popupMenu.add(mntmFoo);
+          
+          trayIcon = new TrayIcon(image, "Tray Demo", null);
+          trayIcon.addActionListener(listener);
+          
+          
+          trayIcon.addMouseListener(new MouseAdapter() {
+              public void mouseReleased(MouseEvent e) {
+                  if (e.isPopupTrigger()) {
+                      popupMenu.setLocation(e.getX(), e.getY());
+                      popupMenu.setInvoker(popupMenu);
+                      popupMenu.setVisible(true);
+                  }
+              }
+          });
+          
+          try {
+            tray.add(trayIcon);
+        } catch (AWTException e1) {
+            e1.printStackTrace();
+        }
+        } 
     }
 
     public static void main(String[] args) {
@@ -113,6 +200,23 @@ public class Window {
             public void run() {
                 createAndShowGUI();
             }
+        });
+    }
+    private static void addPopup(Component component, final JPopupMenu popup) {
+        component.addMouseListener(new MouseAdapter() {
+        	public void mousePressed(MouseEvent e) {
+        		if (e.isPopupTrigger()) {
+        			showMenu(e);
+        		}
+        	}
+        	public void mouseReleased(MouseEvent e) {
+        		if (e.isPopupTrigger()) {
+        			showMenu(e);
+        		}
+        	}
+        	private void showMenu(MouseEvent e) {
+        		popup.show(e.getComponent(), e.getX(), e.getY());
+        	}
         });
     }
 }

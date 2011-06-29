@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>Java Mailer</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+<body>
+<h1>Java Mailer Dokumentace (vyjímečně v češtině)</h1>
+<p>Java Mailer umožňuje jednoduše vytvořit proxy SMTP server na kterýmkoliv počítači v případě, že jsme z toho počítače schopni se dostat přes SSH do míst, kde je k dispozici reálný SMTP server.</p>
+<p>Důvody pro vznik takové aplikace jsou:</p>
+<ul>
+<li>SMTP protokol není běžně šifrovaný.</li>
+<li>Standartní port 25 nemusí být z důvodu nastavení infrastruktury sítě dosažitelný.</li>
+<li>SSH server (ze kterého jsme schopni jít na port SMTP) může mít zakázané forwardování portů a tedy nejsme schopni jednoduše vytvořit SSH tunel.</li>
+</ul>
+<h2>Mailer (bez GUI)</h2>
+<h3>Konfigurace</h3>
+<p>Lze konfigurovat prostřednictvím <code>mailer.properties</code> uloženým na classpath.</p>
+<p>Jednotlive property jsou popsány v přiloženém konfiguračním souboru.</p>
+<h3>Spouštění</h3>
+<p>Nejjednodušší způsob je pomocí ant skriptu: <code>ant run</code>.</p>
+<p>Jinak lze Mailer spustit jakýmkoliv způsobem, akorát je třeba mít na vědomí, že se používá Apache Log4j, který vyžaduje nastavení alespoň jednoho appenderu. Toho může být docíleno podsunutím properties ze souboru <code>mailer.properties</code> pomocí JVM argumentu <code>-Dlog4j.configuration=mailer.properties</code>.</p>
+<h2>Mailer GUI</h2>
+<p>Skládá se z jednoho okénka horizontálně rozděleného na 3 části:</p>
+<ul>
+<li>Konfigurace</li>
+<li>Monitor</li>
+<li>Ovládací panel</li>
+</ul>
+<h3>Konfigurace</h3>
+<p>Nastavují se stejné property jako jsou v <code>mailer.properties</code>.</p>
+<p>Po přepsání je třeba kliknout na tlačítko "Save" (hvězdička u "Save *" značí, že od poslední změny nebylo něco uloženo).</p>
+<p>Je třeba dát pozor na to, že pokud je nějaká buňka právě editovaná, stisknutí tlačítka "Save" způsobí, že si Swing pořád myslí, že buňka se edituje.</p>
+<p>Nápověda je k nalezení v dialogovém okně Help -> Help</p>
+<h3>Monitor</h3>
+<p>Záložka Info zobrazuje aktuální stav Maileru.</p>
+<p>Záložka Console zobrazuje zalogované zprávy Mailerem.</p>
+<h3>Control</h3>
+<p>Na této komponentě se spouští a vypíná Mailer samotný.</p>
+<h2>Vytvoření SSH tunelu (property <code>ssh.executable</code>)</h2>
+<p>Nejjednoduší způsob je použít OpenSSH ssh klienta. Ten má ale tu nevýhodu (resp. výhodu), že mu nelze jednoduše vnutit heslo přihlašovaného uživatele. SSH si alokuje terminál pro zadávání hesla kvůli zajištění vysokého stupně bezpečnosti. Proto není možné zadat interaktivně heslo přes aplikaci Java Mailer. Jako řešení se nabízí použít SSH agenta nebo přihlašování s klíčem (bez passphrase).</p>
+<p>V případe Windows je to jednodušší - použít Putty (Plink), kde je možné jako jeden z argumentů zadat heslo (to je ale nebezpečné), nebo bezpečně použít (např RSA) klíče. Také lze použít CYGWIN ssh (s pochopením výše napsaného).</p>
+<h2>Popis procesů</h2>
+<p>V aplikaci Java mailer se používá několik různých druhů vláken a procesů.</p>
+<ul>
+<li>Standartní vlákna Javy</li>
+<li>Standartní vlákna Swingu</li>
+<li>Hlavní vlákno Maileru - poslouchá na portu a přijímá komunikaci od klientů</li>
+<li>Sender vlákna - po připojení klienta dostanou od hlavního vlákna soket na klienta a toho obslouží</li>
+<li>Receiver vlákna - Vždy jedno vlákno Sender vytvoří jedno vlákno Receiver. Toto vlákno asynchronně odesílá výstup ze SMTP serveru do socketu na kterém poslouchá klient.</li>
+<li>Pomocná vlákna - ostatní vlákna určená pro jednorázové operace (asynchronní zápis dat na konzoli, asynchronní zjišťování stavu Maileru a jeho vláken, vlákno Swingu zobrazující komponenty)</li>
+<li>SSH proces - spuštěný ssh klient, jehož stdout a stderr konzumuje Receiver vlákno. Do stdinu zapisuje Sender vlákno.</li>
+</ul>
+<h2>Popis standartního flow</h2>
+<ol>
+<li>Klient se připojí na port, na kterém poslouchá hlavní vlákno Maileru</li>
+<li>Hlavní vlákno si vezme z idle poolu nějaké volné vlákno (popřípadě si vytvoří nové), předá mu klientský soket. Hlavní vlákno pokračuje v naslouchání na server socketu aby mohlo přijmout dalšího klienta.</li>
+<li>Sender vlákno vytvoří jeden SSH proces a jedno Receiver vlákno.</li>
+<li>Probíhá komunikace mezi klientem a vzdáleným protunelovaným SMTP serverem - za pomocí Sender a Receiver vláken předávající klientský výstup (směr SMTP server) respektive vstup (odpovědi od SMTP serveru).</li>
+<li>Při ukončení libovolného zůčastněného jsou násilně ukončeni všichni ostatní (vlákna, procesy, klienti)</li>
+<li>Sender vlákno se vrací do idle poolu, popřípadě je ukončeno.</li>
+</ol>
+<h2>Použité nástroje</h2>
+<ul>
+<li>Apache Log4j</li>
+<li>Apache Commons Collections</li>
+<li>Swing</li>
+<li>Google WindowBuilder Pro</li>
+</ul>
+<h2>Java verze</h2>
+<p>Java Mailer vyžaduje Java VM verze 6 a vyšší.</p>
+<h2>Autor</h2>
+<p>Štěpán Vávra, vavra.stepan AT gmail.com</p>
+</body>
+</html>

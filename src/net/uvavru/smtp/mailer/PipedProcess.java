@@ -5,98 +5,121 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
+import org.apache.log4j.Logger;
+
+/**
+ * The {@code PipedProcess} class connects streams to process's {@code stdin},
+ * {@code stdout}, {@code stderr} so that any other thread is able to
+ * communicate with the process via those streams.
+ */
 public class PipedProcess {
 
-    /**
-     * Input stream of the process. This delivers created output data to the
-     * input of the process.
-     */
-    private OutputStream stdin = null;
+	/**
+	 * Input stream of the process. This delivers created output data to the
+	 * input of the process.
+	 */
+	private OutputStream stdin = null;
 
-    /**
-     * Standard (buffered) output of the process.
-     */
-    private BufferedReader stdoutBuffered;
+	private static Logger logger = Logger.getLogger(PipedProcess.class
+			.getName());
 
-    /**
-     * Error (buffered) output of the process.
-     */
-    private BufferedReader stderrBuffered;
+	/**
+	 * Standard (buffered) output of the process.
+	 */
+	private BufferedReader stdoutBuffered;
 
-    /**
-     * The process itself.
-     */
-    private Process process;
+	/**
+	 * Error (buffered) output of the process.
+	 */
+	private BufferedReader stderrBuffered;
 
-    /**
-     * Command line of the process it was executed by.
-     */
-    private String commandLine;
+	/**
+	 * The process itself.
+	 */
+	private Process process;
 
-    public PipedProcess(String commandLine) {
-        this.commandLine = commandLine;
-    }
+	/**
+	 * Command line of the process it was executed by.
+	 */
+	private String commandLine;
 
-    /**
-     * Message written to the stdin of the process.
-     * 
-     * @param str
-     * @throws IOException
-     */
-    public void stdinWrite(String str) throws IOException {
-        stdin.write(str.getBytes());
-        stdin.flush();
-    }
+	public PipedProcess(String commandLine) {
+		this.commandLine = commandLine;
+	}
 
-    public void stdinWrite(byte[] bytes) throws IOException {
-        stdin.write(bytes);
-        stdin.flush();
-    }
+	/**
+	 * Message written to the {@code stdin} of the process.
+	 * 
+	 * @param str
+	 *            String to write
+	 * @throws IOException
+	 *             in case of IO failure.
+	 */
+	public void stdinWrite(String str) throws IOException {
+		stdin.write(str.getBytes());
+		stdin.flush();
+	}
 
-    /**
-     * Get one line from the process's standard output.
-     * 
-     * @return a line
-     * @throws IOException
-     */
-    public String outputLine() throws IOException {
-        return stdoutBuffered.readLine();
-    }
+	/**
+	 * Message written to the {@code stdin} of the process.
+	 * 
+	 * @param bytes
+	 *            Array of bytes to write
+	 * @throws IOException
+	 *             in case of IO failure
+	 */
+	public void stdinWrite(byte[] bytes) throws IOException {
+		stdin.write(bytes);
+		stdin.flush();
+	}
 
-    /**
-     * Get one line from the process's error output.
-     * 
-     * @return a line
-     * @throws IOException
-     */
-    public String errorLine() throws IOException {
-        return stderrBuffered.readLine();
-    }
+	/**
+	 * Get one line from the process's standard output.
+	 * 
+	 * @return a line
+	 * @throws IOException
+	 *             in case of IO failure
+	 */
+	public String outputLine() throws IOException {
+		return stdoutBuffered.readLine();
+	}
 
-    /**
-     * Kill the process.
-     */
-    public void destroy() {
-        if (process != null) {
-            process.destroy();
-        }
-    }
+	/**
+	 * Get one line from the process's error output.
+	 * 
+	 * @return a line
+	 * @throws IOException
+	 *             in case of IO failure
+	 */
+	public String errorLine() throws IOException {
+		return stderrBuffered.readLine();
+	}
 
-    /**
-     * Execute process with the command line specified.
-     * 
-     * @throws IOException
-     *             when exec() throws an IOException
-     */
-    public void exec() throws IOException {
-        // launch EXE and grab stdin/stdout and stderr
-        process = Runtime.getRuntime().exec(commandLine);
-        stdin = process.getOutputStream();
+	/**
+	 * Kills the process.
+	 */
+	public void destroy() {
+		if (process != null) {
+			process.destroy();
+		}
+	}
 
-        // clean up if any output in stderr
-        stdoutBuffered = new BufferedReader(new InputStreamReader(
-                process.getInputStream()));
-        stderrBuffered = new BufferedReader(new InputStreamReader(
-                process.getErrorStream()));
-    }
+	/**
+	 * Execute process with the command line specified.
+	 * 
+	 * @throws IOException
+	 *             when exec() throws an IOException
+	 */
+	public void exec() throws IOException {
+		// launch EXE and grab stdin/stdout and stderr
+		logger.debug("executing: " + commandLine);
+		process = Runtime.getRuntime().exec(commandLine);
+		stdin = process.getOutputStream();
+
+		// clean up if any output in stderr
+		stdoutBuffered = new BufferedReader(new InputStreamReader(process
+				.getInputStream()));
+		stderrBuffered = new BufferedReader(new InputStreamReader(process
+				.getErrorStream()));
+	}
 }

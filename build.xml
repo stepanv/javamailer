@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="help" name="javamailer">
+	<description>
+		Java Mailer build file.
+		Available targets (run help target):
+			* build      compiles whole project
+			* clean      cleans classes
+			* cleanall   cleans all
+			* run        runs Mailer withou GUI
+			* run-gui    runs Mailer with GUI
+			* javadoc    creates javadoc in 'doc' dir
+	</description> 
+
+	<property environment="env" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.6" />
+	<property name="source" value="1.6" />
+	<path id="javamailer.classpath">
+		<pathelement location="bin" />
+		<pathelement location="lib/log4j-1.2.16.jar" />
+		<pathelement location="lib/commons-collections-3.2.1.jar" />
+		<pathelement location="lib/miglayout15-swing.jar" />
+	</path>
+
+	<target name="init">
+		<mkdir dir="bin" />
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src">
+				<exclude name="**/*.launch" />
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="clean">
+		<delete dir="bin" />
+	</target>
+
+	<target depends="clean" name="cleanall" >
+		<delete dir="doc/javadoc" />
+	</target>
+
+	<target depends="init" name="build">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+			<src path="src" />
+			<classpath refid="javamailer.classpath" />
+		</javac>
+	</target>
+
+
+	<target name="javadoc">
+		<echo message="Generating JavaDoc. ${ant.project.name}: ${ant.file}" />
+		<javadoc destdir="doc/javadoc" author="true" version="true" use="true" windowtitle="Java Mailer" encoding="utf-8" charset="utf-8" overview="doc/user_doc.html">
+
+			<packageset dir="src" defaultexcludes="yes">
+				<include name="net/uvavru/smtp/mailer/**" />
+			</packageset>
+
+			<doctitle>
+				<![CDATA[<h1>Java Mailer</h1>]]></doctitle>
+		<bottom>
+			<![CDATA[<i>Copyright &#169; 2011 Stepan Vavra; All Rights Reserved.</i>]]></bottom>
+	<tag name="todo" scope="all" description="To do:" />
+	<group title="Mailer core packages" packages="net.uvavru.smtp.mailer" />
+	<group title="GUI packages" packages="net.uvavru.smtp.mailer.gui*" />
+	<link offline="true" href="http://download.oracle.com/javase/6/docs/api/" packagelistLoc="/tmp" />
+		</javadoc>
+	</target>
+
+	<target depends="build" name="run-gui">
+		<java classname="net.uvavru.smtp.mailer.gui.Window" failonerror="true" fork="yes">
+			<classpath refid="javamailer.classpath" />
+		</java>
+	</target>
+	
+	<target depends="build" name="run">
+		<java classname="net.uvavru.smtp.mailer.MailerImpl" failonerror="true" fork="yes">
+			<classpath refid="javamailer.classpath" />
+			<jvmarg value="-Dlog4j.configuration=mailer.properties"/>
+		</java>
+	</target>
+	
+	<target name="help">
+		<echo message="Available targets:"/>
+		<echo message=" * build      compiles whole project"/>
+		<echo message=" * clean      cleans classes"/>
+		<echo message=" * cleanall   cleans all"/>
+		<echo message=" * run        runs Mailer withou GUI"/>
+		<echo message=" * run-gui    runs Mailer with GUI"/>
+		<echo message=" * javadoc    creates javadoc in 'doc' dir"/>
+	</target>
+</project>

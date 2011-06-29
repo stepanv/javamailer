@@ -18,13 +18,26 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
 import net.uvavru.smtp.mailer.Configuration;
+import net.uvavru.smtp.mailer.Mailer;
 
 import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 
 
+/**
+ * The Swing {@code ConfigurationPanel} class provides a GUI
+ * for configuring {@link Mailer} via its {@link Configuration} class.
+ * 
+ * @author stepan
+ *
+ */
 public class ConfigurationPanel extends JPanel {
 
+	/**
+	 * Default model for all tables used in this class.
+	 * @author stepan
+	 *
+	 */
     class ConfigTableModel extends DefaultTableModel {
         public ConfigTableModel() {
             super(new String[] { "name", "value" }, 0);
@@ -67,22 +80,23 @@ public class ConfigurationPanel extends JPanel {
 
     private void fillTableModel(DefaultTableModel tableModel,
             BidiMap propertyMapping) {
-        for (String key : Configuration.props.keySet()) {
-            if (propertyMapping.containsKey(key.toString())) {
+        for (Object key : propertyMapping.keySet()) {
                 Vector<String> row = new Vector<String>();
                 row.add((String)propertyMapping.get(key.toString()));
-                row.add(Configuration.props.getString(key));
+                row.add(Configuration.getProperty(key.toString()));
                 tableModel.addRow(row);
-            }
         }
     }
 
+    /**
+     * Creates instance of {@link ConfigurationPanel} Swing component.
+     */
     public ConfigurationPanel() {
         super();
 
         propertyServerToNameMapping.put(Configuration.SERVER_THREADS, "Thread count");
         propertyServerToNameMapping.put(Configuration.SERVER_TIMEOUT,
-                "Connection max duration");
+                "Connection timeout duration");
         propertyServerToNameMapping.put(Configuration.SERVER_PORT, "Listening port");
         propertyServerToNameMapping.put(Configuration.SERVER_SECURITYCLIENTPATTERN,
                 "Reg exp pattern for clinents IPs");
@@ -117,8 +131,13 @@ public class ConfigurationPanel extends JPanel {
     private JTable tableSMTPConfig;
     
     private ControlPanel controlPanel;
-    private JTable table;
 
+    /**
+     * It's required to set {@link ControlPanel} for flawless 
+     * {@code ConfigurationPanel} functionality.
+     * 
+     * @param controlPanel A {@code ControlPanel} instance
+     */
     public void setControlPanel(ControlPanel controlPanel) {
         this.controlPanel = controlPanel;
     }
@@ -159,25 +178,14 @@ public class ConfigurationPanel extends JPanel {
         tableSSHConfig = new JTable();
         scrollPaneSSHConfig.setViewportView(tableSSHConfig);
         tableSSHConfig.setModel(sshTableModel);
-        tableSSHConfig.getColumnModel().getColumn(0).setPreferredWidth(124);
-        tableSSHConfig.getColumnModel().getColumn(1).setPreferredWidth(340);
 
         JScrollPane scrollPaneSMTPConfig = new JScrollPane();
-        tabbedPaneConfiguration.addTab("SMTP setting", null,
+        tabbedPaneConfiguration.addTab("SMTP settings", null,
                 scrollPaneSMTPConfig, null);
 
         tableSMTPConfig = new JTable();
         tableSMTPConfig.setModel(smtpTableModel);
         scrollPaneSMTPConfig.setViewportView(tableSMTPConfig);
-        
-        JScrollPane scrollPane = new JScrollPane();
-        tabbedPaneConfiguration.addTab("New tab", null, scrollPane, null);
-        
-        table = new JTable();
-        
-        
-        
-        scrollPane.setViewportView(table);
 
         final JButton btnSave = new JButton(BUTTON_SAVE);
         GridBagConstraints gbc_btnSave = new GridBagConstraints();
@@ -193,6 +201,12 @@ public class ConfigurationPanel extends JPanel {
             }
         });
         
+        /**
+         * Table model listener implementation used in all tables here.
+         * 
+         * @author stepan
+         *
+         */
         class ConfigTableModelListener implements TableModelListener {
             @Override
             public void tableChanged(TableModelEvent e) {
@@ -209,7 +223,8 @@ public class ConfigurationPanel extends JPanel {
     public static final String BUTTON_SAVE_PENDINGCHANGE = "Save *";
 
     /**
-     * Flushes all changed properties to make them permanent.
+     * Flushes all changed properties to make them permanent for {@link Mailer}
+     * instance.
      */
     public void flushProperties() {
         writeConfiguration(serverTableModel, propertyServerToNameMapping);
